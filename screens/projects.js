@@ -33,8 +33,8 @@ window.renderProjects = function () {
               ${isCurrent ? '<span class="status-pill status-shooting">進行中</span>' : ''}
               <h3 class="font-display font-bold text-base truncate" style="${isCurrent ? 'color:var(--primary)' : 'color:var(--text)'}; letter-spacing:-0.02em; line-height:1.2">${prj.title}</h3>
             </div>
-            <p style="font-family:var(--font-display); font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; display:flex; align-items:center; gap:4px">
-              <span class="material-symbols-outlined" style="font-size:12px">business</span>${prj.client || 'CLIENT 未設定'}
+            <p style="font-family:var(--font-display); font-size:10px; font-weight:800; color:var(--muted); letter-spacing:0.04em; display:flex; align-items:center; gap:4px">
+              <span class="material-symbols-outlined" style="font-size:12px">business</span>${prj.client || 'クライアント未設定'}
             </p>
           </div>
           <div style="display:flex; gap:6px; flex-shrink:0">
@@ -74,28 +74,28 @@ window.renderProjects = function () {
           <!-- 4 Stats -->
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px">
             <div style="display:flex; flex-direction:column; gap:2px">
-               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">CUTS</span>
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">カット数</span>
                <div style="display:flex; align-items:center; gap:3px">
                  <span class="material-symbols-outlined" style="font-size:14px; color:${progressColor}">movie</span>
                  <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:${progressColor}">${stats.done}/${stats.total}</span>
                </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:2px">
-               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">BUDGET</span>
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">予算</span>
                <div style="display:flex; align-items:center; gap:3px">
                  <span class="material-symbols-outlined" style="font-size:14px; color:${budgetColor}">account_balance_wallet</span>
                  <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:${budgetColor}">${budgetPct}%</span>
                </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:2px">
-               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">CREW</span>
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">スタッフ</span>
                <div style="display:flex; align-items:center; gap:3px">
                  <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted)">groups</span>
                  <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--text)">${crewCount}</span>
                </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:2px">
-               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">LOC</span>
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">ロケ地</span>
                <div style="display:flex; align-items:center; gap:3px">
                  <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted)">location_on</span>
                  <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--text)">${locCount}</span>
@@ -118,13 +118,13 @@ window.renderProjects = function () {
 
     return `
 <div id="screen-projects" class="screen flex-col h-full" style="background:var(--bg)">
-  <header class="safe-top" style="background:var(--bg);border-bottom:1px solid var(--border)" class="shrink-0 flex items-center justify-between px-4 py-3">
+  <header class="safe-top shrink-0 flex items-center justify-between px-5 py-4" style="background:var(--bg);border-bottom:1px solid var(--border)">
     <div>
-      <h1 class="font-display font-bold text-lg" style="color:var(--text)">案件管理</h1>
-      <p style="color:var(--muted);font-size:11px;font-family:var(--font-display)">${projects.length}件の案件</p>
+      <h1 class="font-display font-bold text-2xl mb-1" style="color:var(--text);letter-spacing:-0.03em">案件管理</h1>
+      <p style="color:var(--muted);font-size:12px;font-family:var(--font-display)">${projects.length}件の案件</p>
     </div>
-    <button id="prj-add-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-lg" style="background:var(--primary);color:var(--bg);font-family:var(--font-display);font-weight:700;font-size:11px;border:none;cursor:pointer">
-      <span class="material-symbols-outlined" style="font-size:16px">add</span>新規案件
+    <button id="prj-add-btn" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition-transform hover:scale-95" style="background:var(--primary);color:var(--bg);font-family:var(--font-display);font-weight:700;font-size:13px;border:none;cursor:pointer;box-shadow:0 4px 12px var(--primary-t)">
+      <span class="material-symbols-outlined" style="font-size:18px">add</span>新規案件
     </button>
   </header>
 
