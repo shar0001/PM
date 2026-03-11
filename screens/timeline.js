@@ -36,8 +36,11 @@ window.renderTimeline = function () {
 
     return `
       <div class="flex gap-3 items-start shot-card-tl slide-up-enter" style="animation-delay:${idx * 0.04}s" draggable="${!isCompleted}" data-shot-id="${shot.id}" data-shot-status="${shot.status}">
-        <div style="width:44px;text-align:right;padding-top:6px;flex-shrink:0">
-          <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:${isAfterSun ? 'var(--accent)' : 'var(--muted)'};transition:color .3s">${shot.startTime}</span>
+        <div style="width:52px;text-align:right;flex-shrink:0;padding-top:4px">
+          <span style="font-family:var(--font-display);font-size:14px;font-weight:800;color:${isAfterSun ? 'var(--accent)' : isShooting ? 'var(--primary)' : 'var(--text)'};transition:color .3s;letter-spacing:-.02em;display:block">${shot.startTime}</span>
+          <button class="tl-duration-edit-btn no-print" data-shot-id="${shot.id}" title="所要時間を変更" style="margin-top:6px;display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;background:var(--surface2);color:var(--primary);border:1.5px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:11px;font-weight:700;font-family:var(--font-display);cursor:pointer;width:100%;transition:border-color .2s">
+            <span class="material-symbols-outlined" style="font-size:12px">timer</span>${shot.duration}
+          </button>
         </div>
         <div class="shot-card-inner" style="border:${border};background:${bg};${opacity};border-radius:14px;padding:14px;flex:1;min-width:0;position:relative;transition:all .3s cubic-bezier(0.2,0.8,0.2,1)">
           ${isAfterSun ? '<span class="material-symbols-outlined" style="position:absolute;top:10px;right:10px;color:var(--accent);font-size:16px">wb_twilight</span>' : ''}
@@ -57,7 +60,6 @@ window.renderTimeline = function () {
               ${shot.notes ? `<p style="font-size:10px;color:var(--primary);margin-top:3px">※ ${shot.notes}</p>` : ''}
               ${isCompleted ? `<p style="font-size:10px;color:var(--success);margin-top:3px;display:flex;align-items:center;gap:3px"><span class="material-symbols-outlined" style="font-size:12px">verified</span>完了 ${shot.completedAt} · タップで取り消し</p>` : ''}
               <div style="display:flex;gap:8px;margin-top:6px">
-                <span style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:2px"><span class="material-symbols-outlined" style="font-size:11px">timer</span>${shot.duration}分</span>
                 ${shot.scene ? `<span style="font-size:10px;color:var(--muted)">Scene ${shot.scene}</span>` : ''}
               </div>
             </div>
@@ -72,10 +74,15 @@ window.renderTimeline = function () {
   return `
 <div id="screen-timeline" class="screen fade-enter" style="flex-direction:column;background:var(--bg)">
   <!-- Project banner -->
-  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:2">
+  <div class="safe-top" style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:2">
     <div style="min-width:0;flex:1">
-      <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">${p.shootDay} · ${p.shootDate}</p>
-      <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</p>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+        <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">${p.shootDay} · ${p.shootDate}</p>
+        <button id="tl-start-time-edit" class="no-print" style="display:flex;align-items:center;gap:3px;background:var(--primary-t);color:var(--primary);border:1px solid var(--primary);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;font-family:var(--font-display);cursor:pointer;transition:all .2s">
+          <span class="material-symbols-outlined" style="font-size:11px">schedule</span>開始 ${p.startTime}
+        </button>
+      </div>
+      <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</p>
     </div>
     <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
       <button onclick="document.getElementById('screen-timeline').classList.replace('fade-enter','fade-exit');setTimeout(()=>window.navigateTo('projects'),250)" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--muted);transition:all .2s">
@@ -144,6 +151,37 @@ window.initTimeline = function () {
   document.getElementById('tl-goto-sim')?.addEventListener('click', () => {
     document.getElementById('screen-timeline').classList.replace('fade-enter', 'fade-exit');
     setTimeout(() => window.navigateTo('simulator'), 250);
+  });
+
+  // Edit Project Start Time
+  document.getElementById('tl-start-time-edit')?.addEventListener('click', () => {
+    const p = Store.project;
+    const newTime = prompt('撮影開始時間を入力してください (HH:MM)', p.startTime);
+    if (newTime && /^([01]\d|2[0-3]):?([0-5]\d)$/.test(newTime)) {
+      const formatted = newTime.replace(':', '').replace(/^(\d{2})(\d{2})$/, '$1:$2');
+      p.startTime = formatted;
+      Store.save();
+      window.navigateTo('timeline');
+    } else if (newTime !== null) {
+      window.showToast('正しい形式で入力してください (例: 08:00)', 'error');
+    }
+  });
+
+  // Edit Shot Duration inline
+  document.querySelectorAll('.tl-duration-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = btn.dataset.shotId;
+      const shot = Store.shots.find(s => s.id === id);
+      if (!shot) return;
+      const newDur = prompt(`「${shot.title}」の所要時間を入力 (分)`, shot.duration);
+      if (newDur && !isNaN(parseInt(newDur, 10))) {
+        shot.duration = parseInt(newDur, 10);
+        Store.save();
+        window.navigateTo('timeline');
+      }
+    });
   });
 
   // Complete toggle

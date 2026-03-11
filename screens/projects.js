@@ -86,7 +86,7 @@ window.renderProjects = function () {
 
     return `
 <div id="screen-projects" class="screen flex-col h-full" style="background:var(--bg)">
-  <header style="background:var(--bg);border-bottom:1px solid var(--border)" class="shrink-0 flex items-center justify-between px-4 py-3">
+  <header class="safe-top" style="background:var(--bg);border-bottom:1px solid var(--border)" class="shrink-0 flex items-center justify-between px-4 py-3">
     <div>
       <h1 class="font-display font-bold text-lg" style="color:var(--text)">案件管理</h1>
       <p style="color:var(--muted);font-size:11px;font-family:var(--font-display)">${projects.length}件の案件</p>

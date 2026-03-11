@@ -134,7 +134,7 @@ window.renderLogistics = function () {
 
     return `
 <div id="screen-logistics" class="screen" style="flex-direction:column">
-  <header style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
+  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
     <div>
       <h1 style="font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em">ロケーション</h1>
       <p style="color:var(--primary);font-size:10px;font-family:var(--font-display);font-weight:700">${locs.length} 箇所</p>

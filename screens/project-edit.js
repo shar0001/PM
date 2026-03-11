@@ -26,7 +26,7 @@ window.renderProjectEdit = function () {
 
   return `
 <div id="screen-project-edit" class="screen flex-col h-full fade-enter" style="background:var(--bg)">
-  <header style="background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0" class="flex items-center gap-2 px-4 py-3">
+  <header style="background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0" class="safe-top flex items-center gap-2 px-4 py-3">
     <button id="pe-back-btn" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface transition-colors" style="background:transparent;border:none;cursor:pointer;color:var(--text)">
       <span class="material-symbols-outlined">arrow_back</span>
     </button>

@@ -110,7 +110,7 @@ window.renderBudget = function () {
 
   return `
 <div id="screen-budget" class="screen fade-enter" style="flex-direction:column;background:var(--bg)">
-  <header style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px">
+  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px">
     <h1 style="font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em">予算トラッカー</h1>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="budget-edit-total-btn" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;color:var(--muted);font-family:var(--font-display);font-size:11px;font-weight:700">予算編集</button>

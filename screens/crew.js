@@ -80,7 +80,7 @@ window.renderCrew = function () {
 
   return `
 <div id="screen-crew" class="screen fade-enter" style="flex-direction:column">
-  <header style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
+  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
     <div>
       <h1 style="font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em">クルー</h1>
       <p style="color:var(--primary);font-size:10px;font-family:var(--font-display);font-weight:700">${crew.length} 名登録済み</p>

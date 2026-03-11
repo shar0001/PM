@@ -37,7 +37,9 @@ window.renderShots = function () {
               <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><span class="material-symbols-outlined" style="font-size:12px;color:var(--primary)">camera_roll</span>${shot.lens || '—'}</div>
               <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);overflow:hidden"><span class="material-symbols-outlined" style="font-size:12px;color:var(--primary)">group</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cast}</span></div>
               <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);overflow:hidden"><span class="material-symbols-outlined" style="font-size:12px;color:var(--primary)">location_on</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${shot.location || '—'}</span></div>
-              <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><span class="material-symbols-outlined" style="font-size:12px;color:var(--primary)">timer</span>${shot.duration}分</div>
+              <button class="shot-inline-dur-btn no-print" data-shot-id="${shot.id}" style="display:flex;align-items:center;justify-content:flex-start;gap:4px;font-size:11px;color:var(--primary);font-weight:700;font-family:var(--font-display);background:var(--primary-t);border:1px solid transparent;border-radius:6px;padding:2px 6px;cursor:pointer;margin-left:-6px;transition:all .2s">
+                <span class="material-symbols-outlined" style="font-size:12px">timer</span>${shot.duration}分
+              </button>
             </div>
             ${shot.notes ? `<p style="font-size:10px;color:var(--primary);margin-top:5px">※ ${shot.notes}</p>` : ''}
             ${isC ? `<p style="font-size:10px;color:var(--success);margin-top:4px;display:flex;align-items:center;gap:3px"><span class="material-symbols-outlined" style="font-size:11px">verified</span>完了 ${shot.completedAt} · タップで取り消し</p>` : ''}
@@ -48,7 +50,7 @@ window.renderShots = function () {
 
   return `
 <div id="screen-shots" class="screen" style="flex-direction:column;background:var(--bg)">
-  <header style="flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border)">
+  <header class="safe-top" style="flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border)">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
       <h1 style="font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--text)">カット管理</h1>
       <div style="display:flex;align-items:center;gap:8px">
@@ -161,6 +163,23 @@ window.initShots = function () {
       Store.completeShot(id);
       window.showToast(msg, shot?.status === 'completed' ? '' : 'success');
       window.navigateTo('shots');
+    });
+  });
+
+  // Edit Shot Duration inline
+  document.querySelectorAll('.shot-inline-dur-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = btn.dataset.shotId;
+      const shot = Store.shots.find(s => s.id === id);
+      if (!shot) return;
+      const newDur = prompt(`「${shot.title}」の所要時間を入力 (分)`, shot.duration);
+      if (newDur && !isNaN(parseInt(newDur, 10))) {
+        shot.duration = parseInt(newDur, 10);
+        Store.save();
+        window.navigateTo('shots');
+      }
     });
   });
 

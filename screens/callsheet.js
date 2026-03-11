@@ -32,7 +32,7 @@ window.renderCallsheet = function () {
 
     return `
 <div id="screen-callsheet" class="screen flex-col h-full">
-  <header class="shrink-0 flex items-center bg-background-dark border-b border-border-col px-4 py-3 gap-2 no-print">
+  <header class="safe-top shrink-0 flex items-center bg-background-dark border-b border-border-col px-4 py-3 gap-2 no-print">
     <button onclick="window.navigateTo('crew')" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface transition-colors">
       <span class="material-symbols-outlined">arrow_back</span>
     </button>

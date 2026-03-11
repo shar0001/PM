@@ -35,7 +35,7 @@ window.renderKanban = function () {
 
     return `
 <div id="screen-kanban" class="screen flex-col h-full">
-  <header class="shrink-0 flex items-center justify-between bg-background-dark border-b border-border-col px-4 py-3">
+  <header class="safe-top shrink-0 flex items-center justify-between bg-background-dark border-b border-border-col px-4 py-3">
     <div>
       <h1 class="font-display font-bold text-lg">AI 香盤ジェネレーター</h1>
       <p class="text-muted text-[10px] font-display">${Store.project.title}</p>
