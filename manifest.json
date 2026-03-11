@@ -2,21 +2,21 @@
   "name": "Production OS",
   "short_name": "ProdOS",
   "description": "映像制作の進行管理アプリ — カット管理・香盤・予算・クルー・ロケ地を一元管理",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/PM/index.html",
+  "scope": "/PM/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0C0C0F",
   "theme_color": "#E8A832",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/PM/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/PM/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -29,14 +29,14 @@
     {
       "name": "タイムライン",
       "short_name": "香盤",
-      "url": "./index.html#timeline",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "url": "/PM/index.html#timeline",
+      "icons": [{ "src": "/PM/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "カット管理",
       "short_name": "カット",
-      "url": "./index.html#shots",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "url": "/PM/index.html#shots",
+      "icons": [{ "src": "/PM/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

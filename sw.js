@@ -3,26 +3,26 @@
    ============================================================= */
 const CACHE_NAME = 'production-os-v8';
 const ASSETS = [
-    './',
-    './index.html',
-    './style.css',
-    './app.js',
-    './store.js',
-    './utils.js',
-    './data.js',
-    './weather.js',
-    './screens/projects.js',
-    './screens/project-edit.js',
-    './screens/timeline.js',
-    './screens/shots.js',
-    './screens/logistics.js',
-    './screens/budget.js',
-    './screens/simulator.js',
-    './screens/kanban.js',
-    './screens/crew.js',
-    './screens/callsheet.js',
-    './icons/icon-192.png',
-    './icons/icon-512.png',
+    '/PM/',
+    '/PM/index.html',
+    '/PM/style.css',
+    '/PM/app.js',
+    '/PM/store.js',
+    '/PM/utils.js',
+    '/PM/data.js',
+    '/PM/weather.js',
+    '/PM/screens/projects.js',
+    '/PM/screens/project-edit.js',
+    '/PM/screens/timeline.js',
+    '/PM/screens/shots.js',
+    '/PM/screens/logistics.js',
+    '/PM/screens/budget.js',
+    '/PM/screens/simulator.js',
+    '/PM/screens/kanban.js',
+    '/PM/screens/crew.js',
+    '/PM/screens/callsheet.js',
+    '/PM/icons/icon-192.png',
+    '/PM/icons/icon-512.png',
     'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap',
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
 ];
@@ -79,7 +79,7 @@ self.addEventListener('fetch', event => {
             }).catch(() => {
                 // オフラインフォールバック
                 if (event.request.destination === 'document') {
-                    return caches.match('./index.html');
+                    return caches.match('/PM/index.html');
                 }
             });
         })
