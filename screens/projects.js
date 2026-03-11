@@ -34,8 +34,19 @@ window.renderProjects = function () {
               ${isCurrent ? '<span class="status-pill status-shooting">進行中</span>' : ''}
               <h3 class="font-display font-bold text-sm truncate" style="${isCurrent ? 'color:var(--primary)' : ''}">${prj.title}</h3>
             </div>
-            <p class="text-xs" style="color:var(--muted)">${prj.client || '—'}</p>
-            <p class="text-xs" style="color:var(--muted)">${prj.shootDate}</p>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+              <span style="font-size:9px;font-family:var(--font-display);font-weight:700;color:${isCurrent ? 'var(--primary-d)' : 'var(--muted)'};text-transform:uppercase;letter-spacing:.05em;border:1px solid ${isCurrent ? 'var(--primary)' : 'var(--border2)'};padding:2px 6px;border-radius:4px">${prj.client || 'Client 未設定'}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:4px">
+                <span class="material-symbols-outlined" style="font-size:14px;color:var(--primary)">calendar_today</span>
+                <span style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-display)">${prj.shootDate}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <span class="material-symbols-outlined" style="font-size:14px;color:var(--primary)">schedule</span>
+                <span style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-display)">${prj.startTime || '08:00'} 開始</span>
+              </div>
+            </div>
             <!-- Dashboard Stats -->
             <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
               <div style="display:flex;align-items:center;gap:4px">
@@ -97,7 +108,16 @@ window.renderProjects = function () {
   </header>
 
   <div class="flex-1 overflow-y-auto p-4 space-y-3">
-    ${projects.map(projectCard).join('')}
+    ${projects.length > 0 
+      ? projects.map(projectCard).join('') 
+      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;text-align:center;color:var(--muted);padding:40px 20px">
+          <div style="width:64px;height:64px;border-radius:18px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+            <span class="material-symbols-outlined" style="font-size:32px;color:var(--border2)">movie</span>
+          </div>
+          <h3 style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text);margin-bottom:8px">案件がありません</h3>
+          <p style="font-size:12px;line-height:1.6;max-width:260px;margin:0 auto">右上の「新規案件」ボタンから新しいプロジェクトを作成して、進行管理を始めましょう。</p>
+        </div>`
+    }
   </div>
 </div>`;
 };
