@@ -23,75 +23,96 @@ window.renderProjects = function () {
         const budgetColor = budgetPct >= 90 ? 'var(--accent)' : budgetPct > 0 ? 'var(--primary)' : 'var(--muted)';
 
         return `
-      <div class="project-card rounded-xl overflow-hidden border ${isCurrent ? 'border-primary' : 'border-border'} ${isCurrent ? 'bg-primary-t' : 'bg-surface'} transition-all slide-up-enter"
-           data-prj-id="${prj.id}">
-        <div class="p-4 flex items-start gap-3">
-          <div class="w-10 h-10 rounded-lg ${isCurrent ? 'bg-primary' : 'bg-surface2'} flex items-center justify-center shrink-0 mt-0.5">
-            <span class="material-symbols-outlined text-xl ${isCurrent ? 'text-bg' : 'text-muted'}" style="${isCurrent ? 'color:var(--bg)' : ''}">movie</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-0.5">
+      <div class="project-card rounded-2xl overflow-hidden border ${isCurrent ? 'border-primary' : 'border-border'} ${isCurrent ? 'bg-primary-t' : 'bg-surface'} transition-all slide-up-enter"
+           data-prj-id="${prj.id}" style="padding:18px; display:flex; flex-direction:column; gap:16px">
+        
+        <!-- Header: Title & Actions -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px">
+          <div style="flex:1; min-width:0">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px">
               ${isCurrent ? '<span class="status-pill status-shooting">進行中</span>' : ''}
-              <h3 class="font-display font-bold text-sm truncate" style="${isCurrent ? 'color:var(--primary)' : ''}">${prj.title}</h3>
+              <h3 class="font-display font-bold text-base truncate" style="${isCurrent ? 'color:var(--primary)' : 'color:var(--text)'}; letter-spacing:-0.02em; line-height:1.2">${prj.title}</h3>
             </div>
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-              <span style="font-size:9px;font-family:var(--font-display);font-weight:700;color:${isCurrent ? 'var(--primary-d)' : 'var(--muted)'};text-transform:uppercase;letter-spacing:.05em;border:1px solid ${isCurrent ? 'var(--primary)' : 'var(--border2)'};padding:2px 6px;border-radius:4px">${prj.client || 'Client 未設定'}</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:14px;color:var(--primary)">calendar_today</span>
-                <span style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-display)">${prj.shootDate}</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:14px;color:var(--primary)">schedule</span>
-                <span style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-display)">${prj.startTime || '08:00'} 開始</span>
-              </div>
-            </div>
-            <!-- Dashboard Stats -->
-            <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:13px;color:${progressColor}">movie</span>
-                <span style="font-family:var(--font-display);font-size:11px;font-weight:700;color:${progressColor}">${stats.done}/${stats.total}</span>
-                <span style="font-size:10px;color:var(--muted)">カット</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:13px;color:${budgetColor}">account_balance_wallet</span>
-                <span style="font-family:var(--font-display);font-size:11px;font-weight:700;color:${budgetColor}">${budgetPct}%</span>
-                <span style="font-size:10px;color:var(--muted)">予算</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:13px;color:var(--muted)">groups</span>
-                <span style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text)">${crewCount}</span>
-                <span style="font-size:10px;color:var(--muted)">名</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px">
-                <span class="material-symbols-outlined" style="font-size:13px;color:var(--muted)">location_on</span>
-                <span style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text)">${locCount}</span>
-                <span style="font-size:10px;color:var(--muted)">箇所</span>
-              </div>
-            </div>
-            <!-- Progress Bar -->
-            ${stats.total > 0 ? `<div style="margin-top:6px;height:4px;background:var(--border);border-radius:4px;overflow:hidden">
-              <div style="height:100%;width:${stats.pct}%;background:${progressColor};border-radius:4px;transition:width .6s"></div>
-            </div>` : ''}
+            <p style="font-family:var(--font-display); font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; display:flex; align-items:center; gap:4px">
+              <span class="material-symbols-outlined" style="font-size:12px">business</span>${prj.client || 'CLIENT 未設定'}
+            </p>
           </div>
-          <div class="flex gap-1.5 shrink-0">
+          <div style="display:flex; gap:6px; flex-shrink:0">
             ${isCurrent ? '' : `
-            <button class="prj-switch-btn w-8 h-8 flex items-center justify-center rounded-lg border border-border btn-ghost" data-switch-id="${prj.id}" title="切り替え">
-              <span class="material-symbols-outlined" style="font-size:16px">swap_horiz</span>
+            <button class="prj-switch-btn w-9 h-9 flex items-center justify-center rounded-xl border border-border btn-ghost" data-switch-id="${prj.id}" title="切り替え">
+              <span class="material-symbols-outlined" style="font-size:18px">swap_horiz</span>
             </button>`}
-            <button class="prj-dup-btn w-8 h-8 flex items-center justify-center rounded-lg border border-border btn-ghost" data-dup-id="${prj.id}" title="複製">
-              <span class="material-symbols-outlined" style="font-size:16px">content_copy</span>
+            <button class="prj-dup-btn w-9 h-9 flex items-center justify-center rounded-xl border border-border btn-ghost" data-dup-id="${prj.id}" title="複製">
+              <span class="material-symbols-outlined" style="font-size:18px">content_copy</span>
             </button>
-            <button class="prj-edit-btn w-8 h-8 flex items-center justify-center rounded-lg border border-border btn-ghost" data-edit-id="${prj.id}" title="編集">
-              <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+            <button class="prj-edit-btn w-9 h-9 flex items-center justify-center rounded-xl border border-border btn-ghost" data-edit-id="${prj.id}" title="編集">
+              <span class="material-symbols-outlined" style="font-size:18px">edit</span>
             </button>
             ${projects.length > 1 ? `
-            <button class="prj-del-btn w-8 h-8 flex items-center justify-center rounded-lg border border-border btn-ghost" data-del-id="${prj.id}" title="削除">
-              <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent)">delete</span>
+            <button class="prj-del-btn w-9 h-9 flex items-center justify-center rounded-xl border border-border btn-ghost" data-del-id="${prj.id}" title="削除">
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent)">delete</span>
             </button>` : ''}
           </div>
         </div>
+
+        <!-- Info Box (Date, Time, Stats) -->
+        <div style="background:var(--surface2); border:1px solid var(--border2); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px">
+          <!-- Date & Time -->
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+            <div style="display:flex; align-items:center; gap:6px">
+              <span class="material-symbols-outlined" style="font-size:16px; color:var(--primary)">calendar_today</span>
+              <span style="font-family:var(--font-display); font-weight:700; font-size:13px; color:var(--text)">${prj.shootDate}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px">
+              <span class="material-symbols-outlined" style="font-size:16px; color:var(--primary)">schedule</span>
+              <span style="font-family:var(--font-display); font-weight:700; font-size:13px; color:var(--text)">${prj.startTime || '08:00'} 開始</span>
+            </div>
+          </div>
+          
+          <div style="height:1px; background:var(--border); width:100%"></div>
+          
+          <!-- 4 Stats -->
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px">
+            <div style="display:flex; flex-direction:column; gap:2px">
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">CUTS</span>
+               <div style="display:flex; align-items:center; gap:3px">
+                 <span class="material-symbols-outlined" style="font-size:14px; color:${progressColor}">movie</span>
+                 <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:${progressColor}">${stats.done}/${stats.total}</span>
+               </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px">
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">BUDGET</span>
+               <div style="display:flex; align-items:center; gap:3px">
+                 <span class="material-symbols-outlined" style="font-size:14px; color:${budgetColor}">account_balance_wallet</span>
+                 <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:${budgetColor}">${budgetPct}%</span>
+               </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px">
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">CREW</span>
+               <div style="display:flex; align-items:center; gap:3px">
+                 <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted)">groups</span>
+                 <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--text)">${crewCount}</span>
+               </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px">
+               <span style="font-size:9px; color:var(--muted); font-family:var(--font-display); font-weight:700; letter-spacing:0.04em">LOC</span>
+               <div style="display:flex; align-items:center; gap:3px">
+                 <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted)">location_on</span>
+                 <span style="font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--text)">${locCount}</span>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        ${stats.total > 0 ? `
+        <div style="display:flex; align-items:center; gap:10px">
+          <div style="flex:1; height:6px; background:var(--border); border-radius:6px; overflow:hidden">
+            <div style="height:100%; width:${stats.pct}%; background:${progressColor}; border-radius:6px; transition:width .6s"></div>
+          </div>
+          <span style="font-family:var(--font-display); font-size:11px; font-weight:800; color:${progressColor}">${stats.pct}%</span>
+        </div>` : ''}
+
       </div>`;
     }
 
