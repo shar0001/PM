@@ -66,6 +66,8 @@
     <script src="screens/kanban.js"></script>
     <script src="screens/crew.js"></script>
     <script src="screens/callsheet.js"></script>
+    <script src="screens/live.js"></script>
+    <script src="screens/manage.js"></script>
 </head>
 
 <body class="bg-bg text-text font-body h-[100dvh] overflow-hidden flex flex-col relative">
@@ -85,20 +87,14 @@
 
     <!-- Bottom Navigation -->
     <nav id="bottom-nav">
-        <button class="nav-btn active" data-screen="projects">
-            <span class="material-symbols-outlined">folder</span>案件
-        </button>
-        <button class="nav-btn" data-screen="shots">
-            <span class="material-symbols-outlined">movie</span>カット
+        <button class="nav-btn active" data-screen="live">
+            <span class="material-symbols-outlined">play_circle</span>進行
         </button>
         <button class="nav-btn" data-screen="timeline">
-            <span class="material-symbols-outlined">view_timeline</span>香盤
+            <span class="material-symbols-outlined">event_note</span>香盤
         </button>
-        <button class="nav-btn" data-screen="budget">
-            <span class="material-symbols-outlined">account_balance_wallet</span>予算
-        </button>
-        <button class="nav-btn" id="more-btn">
-            <span class="material-symbols-outlined">apps</span>機能
+        <button class="nav-btn" data-screen="manage">
+            <span class="material-symbols-outlined">settings_suggest</span>管理
         </button>
     </nav>
 

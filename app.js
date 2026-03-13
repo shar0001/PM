@@ -16,7 +16,9 @@
         kanban: { render: window.renderKanban, init: window.initKanban },
         crew: { render: window.renderCrew, init: window.initCrew },
         callsheet: { render: window.renderCallsheet, init: window.initCallsheet },
-        // equipment is removed per user request
+        live: { render: window.renderLive, init: window.initLive },
+        manage: { render: window.renderManage, init: window.initManage },
+        equipment: { render: window.renderEquipment, init: window.initEquipment },
     };
 
     // Screens that hide bottom nav
@@ -54,9 +56,19 @@
 
     // ── Update Bottom Nav ──────────────────────────────────
     const NAV_MAP = {
-        projects: 'projects', timeline: 'timeline', shots: 'shots', budget: 'budget',
-        logistics: 'more', kanban: 'more', crew: 'more', callsheet: 'more', simulator: 'more',
-        'project-edit': 'projects'
+        live: 'live',
+        timeline: 'timeline',
+        manage: 'manage',
+        shots: 'timeline',
+        budget: 'manage',
+        crew: 'manage',
+        logistics: 'manage',
+        equipment: 'manage',
+        simulator: 'manage',
+        kanban: 'manage',
+        callsheet: 'manage',
+        projects: 'manage',
+        'project-edit': 'manage'
     };
 
     function updateNav(screenId) {
@@ -221,7 +233,7 @@
         ];
         let i = 0;
         function step() {
-            if (i >= steps.length) { setTimeout(() => window.navigateTo('projects'), 250); return; }
+            if (i >= steps.length) { setTimeout(() => window.navigateTo('live'), 250); return; }
             const [pct, txt] = steps[i++];
             if (bar) bar.style.width = pct + '%';
             if (label) label.textContent = txt;

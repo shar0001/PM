@@ -71,10 +71,17 @@ class AppStore {
                 expenses: [],
             },
             crew: [],
+            performers: [], // [NEW] 出演者管理
+            equipment: [],  // [NEW] 機材リスト
             emergency: [
                 { label: '救急', number: '119' }, { label: '警察', number: '110' }
             ],
             kanban: null,
+            liveState: {    // [NEW] 撮影進行モードの状態
+                activeShotId: null,
+                delayMinutes: 0,
+                isPaused: false
+            },
             sunsetOverride: null,
             sunriseOverride: null,
         };
@@ -213,6 +220,50 @@ class AppStore {
     deleteBudgetCategory(catId) { this._prj.budget.categories = this._prj.budget.categories.filter(c => c.id !== catId); this._prj.budget.expenses = this._prj.budget.expenses.filter(e => e.cat !== catId); this._save(); this.emit('budget'); }
     getCategoryTotal(catId) { return this._prj.budget.expenses.filter(e => e.cat === catId).reduce((s, e) => s + e.amount, 0); }
     getTotalSpent() { return this._prj.budget.expenses.reduce((s, e) => s + e.amount, 0); }
+
+    // ── Performers ────────────────────────────────────────
+    get performers() { return this._prj.performers || []; }
+    addPerformer(data) {
+        const id = 'perf-' + Date.now();
+        this._prj.performers = this.performers;
+        this._prj.performers.push({ id, ...data });
+        this._save(); this.emit('performers');
+        return id;
+    }
+    updatePerformer(id, patch) {
+        const p = this.performers.find(x => x.id === id);
+        if (p) { Object.assign(p, patch); this._save(); this.emit('performers'); }
+    }
+    deletePerformer(id) {
+        this._prj.performers = this.performers.filter(p => p.id !== id);
+        this._save(); this.emit('performers');
+    }
+
+    // ── Equipment ─────────────────────────────────────────
+    get equipment() { return this._prj.equipment || []; }
+    addEquipment(data) {
+        const id = 'eq-' + Date.now();
+        this._prj.equipment = this.equipment;
+        this._prj.equipment.push({ id, ...data });
+        this._save(); this.emit('equipment');
+        return id;
+    }
+    updateEquipment(id, patch) {
+        const e = this.equipment.find(x => x.id === id);
+        if (e) { Object.assign(e, patch); this._save(); this.emit('equipment'); }
+    }
+    deleteEquipment(id) {
+        this._prj.equipment = this.equipment.filter(e => e.id !== id);
+        this._save(); this.emit('equipment');
+    }
+
+    // ── Live State ────────────────────────────────────────
+    get liveState() { return this._prj.liveState || { activeShotId: null, delayMinutes: 0, isPaused: false }; }
+    updateLiveState(patch) {
+        this._prj.liveState = { ...this.liveState, ...patch };
+        this._save(); this.emit('live');
+    }
+
 
     // ── Crew / Emergency / Kanban / Sun ───────────────────
     get crew() { return this._prj.crew; }
