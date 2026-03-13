@@ -6,18 +6,18 @@
 
     // Screen registry
     const SCREENS = {
-        projects: { render: window.renderProjects, init: window.initProjects },
-        'project-edit': { render: window.renderProjectEdit, init: window.initProjectEdit },
-        timeline: { render: window.renderTimeline, init: window.initTimeline },
-        shots: { render: window.renderShots, init: window.initShots },
-        logistics: { render: window.renderLogistics, init: window.initLogistics },
-        budget: { render: window.renderBudget, init: window.initBudget },
-        kanban: { render: window.renderKanban, init: window.initKanban },
-        crew: { render: window.renderCrew, init: window.initCrew },
-        callsheet: { render: window.renderCallsheet, init: window.initCallsheet },
-        live: { render: window.renderLive, init: window.initLive },
-        manage: { render: window.renderManage, init: window.initManage },
-        equipment: { render: window.renderEquipment, init: window.initEquipment },
+        projects: { render: 'renderProjects', init: 'initProjects' },
+        'project-edit': { render: 'renderProjectEdit', init: 'initProjectEdit' },
+        timeline: { render: 'renderTimeline', init: 'initTimeline' },
+        shots: { render: 'renderShots', init: 'initShots' },
+        logistics: { render: 'renderLogistics', init: 'initLogistics' },
+        budget: { render: 'renderBudget', init: 'initBudget' },
+        kanban: { render: 'renderKanban', init: 'initKanban' },
+        crew: { render: 'renderCrew', init: 'initCrew' },
+        callsheet: { render: 'renderCallsheet', init: 'initCallsheet' },
+        live: { render: 'renderLive', init: 'initLive' },
+        manage: { render: 'renderManage', init: 'initManage' },
+        equipment: { render: 'renderEquipment', init: 'initEquipment' },
     };
 
     // Screens that hide bottom nav
@@ -27,13 +27,30 @@
 
     // ── Navigate ──────────────────────────────────────────
     window.navigateTo = function (screenId) {
-        if (!SCREENS[screenId]) { console.warn('Unknown screen:', screenId); return; }
+        const conf = SCREENS[screenId];
+        if (!conf) { console.warn('Unknown screen:', screenId); return; }
+
+        const renderFn = window[conf.render];
+        const initFn = window[conf.init];
+
+        if (!renderFn) {
+            console.error(`Render function ${conf.render} not found for ${screenId}`);
+            window.showToast(`エラー: ${screenId} の描画に失敗しました`, 'error');
+            return;
+        }
 
         const container = document.getElementById('screen-container');
         if (!container) return;
 
         // Render
-        container.innerHTML = SCREENS[screenId].render();
+        try {
+            container.innerHTML = renderFn();
+        } catch (e) {
+            console.error('Render error:', e);
+            window.showToast('画面の描画中にエラーが発生しました', 'error');
+            return;
+        }
+        
         currentScreen = screenId;
 
         // Ensure .screen element is visible
@@ -43,7 +60,10 @@
         }
 
         // Init interactions
-        try { SCREENS[screenId].init?.(); } catch (e) { console.error('Screen init error:', e); }
+        try { initFn?.(); } catch (e) {
+            console.error('Screen init error:', e);
+            window.showToast('画面の初期化中にエラーが発生しました', 'error');
+        }
 
         // Update nav
         updateNav(screenId);

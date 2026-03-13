@@ -620,6 +620,23 @@ textarea.field-input {
     background: var(--success);
 }
 
+/* ── Layout & Surfaces ───────────────────────── */
+.screen {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.container-p {
+    padding: 1.5rem; /* Increased from 1rem/1.25rem */
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    padding: 1.5rem; /* Increased padding */
+    margin-bottom: 1.25rem;
+}
+
 /* ── Toast ───────────────────────────────────────────── */
 #toast {
     position: fixed;

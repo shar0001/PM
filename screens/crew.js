@@ -17,8 +17,8 @@ window.renderCrew = function () {
             <div class="absolute top-0 right-0 w-16 h-16 bg-accent opacity-5 rounded-full -mr-8 -mt-8"></div>
             <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-accent/10 border-2 border-accent text-accent flex items-center justify-center font-display font-black">
-                        ${p.name ? p.name.charAt(0) : 'P'}
+                    <div class="w-10 h-10 rounded-full bg-accent/10 border-2 border-accent text-accent flex items-center justify-center font-bold text-xs">
+                        演
                     </div>
                     <div>
                         <h3 class="font-bold text-sm">${p.name || '未設定'}</h3>
@@ -48,25 +48,32 @@ window.renderCrew = function () {
         </div>`;
     }
 
+    const deptMap = {
+        'Direction': '監', 'Camera': '撮', 'Electric': '照',
+        'Audio': '録', 'Art': '美', 'HMU': 'メ',
+        'Cast': '演', 'Production': '制', 'その他': '他'
+    };
+
     function crewCard(c) {
         const color = deptColors[c.dept] || '#7A7670';
+        const label = deptMap[c.dept] || '？';
         return `
-        <div class="bg-surface border border-border rounded-xl p-3 mb-2 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-xs" style="background:${color}22; color:${color}; border:1px solid ${color}44">
-                    ${c.name ? c.name.charAt(0) : '?'}
+        <div class="bg-surface border border-border rounded-xl p-4 mb-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs" style="background:${color}22; color:${color}; border:1px solid ${color}44">
+                    ${label}
                 </div>
                 <div>
-                    <p class="font-bold text-xs">${c.name}</p>
-                    <p class="text-[9px] text-muted">${c.dept} / ${c.role}</p>
+                    <p class="font-bold text-sm">${c.name}</p>
+                    <p class="text-[10px] text-muted">${c.dept} / ${c.role}</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
                 <div class="text-right">
-                    <p class="text-[8px] text-muted uppercase">集合</p>
-                    <p class="font-display font-bold text-sm text-text">${c.callTime || '09:00'}</p>
+                    <p class="text-[8px] text-muted uppercase font-bold tracking-tighter">集合</p>
+                    <p class="font-display font-black text-sm text-text">${c.callTime || '09:00'}</p>
                 </div>
-                <button class="crew-edit-btn text-muted" data-id="${c.id}"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+                <button class="crew-edit-btn text-muted hover:text-text" data-id="${c.id}"><span class="material-symbols-outlined">more_vert</span></button>
             </div>
         </div>`;
     }
@@ -85,27 +92,68 @@ window.renderCrew = function () {
 
     <div class="flex-1 overflow-y-auto px-5 pt-4 pb-24">
         
-        <!-- CAST SECTION -->
-        <section class="mb-8">
+        <!-- PERFORMANCE / CAST SECTION -->
+        <section class="mb-10">
             <div class="flex justify-between items-center mb-4">
-                <p class="section-header !mt-0 !mb-0">Performers <span class="text-accent">•</span> 出演者</p>
-                <button id="perf-add-btn" class="flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-bold text-[10px]">
-                    <span class="material-symbols-outlined" style="font-size:14px">person_add</span> 追加
+                <p class="section-header !mt-0 !mb-0">Performer <span class="text-accent">•</span> 出演者</p>
+                <button id="crew-share-btn" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface border border-border text-primary font-bold text-[10px] shadow-sm active:scale-95 transition-transform">
+                    <span class="material-symbols-outlined" style="font-size:14px">share</span> スタッフ共有用コピー
                 </button>
             </div>
-            ${performers.length > 0 ? performers.map(performerCard).join('') : '<p class="text-center py-8 text-xs text-muted border border-dashed border-border rounded-2xl">出演者の登録はありません</p>'}
+            ${performers.length > 0 ? performers.map(perfCard).join('') : '<p class="text-center py-10 text-xs text-muted border border-dashed border-border rounded-2xl">出演者の登録はありません</p>'}
         </section>
 
         <!-- STAFF SECTION -->
-        <section>
+        <section class="mb-8">
             <div class="flex justify-between items-center mb-4">
                 <p class="section-header !mt-0 !mb-0">Crew <span class="text-primary">•</span> スタッフ</p>
-                <button id="crew-add-btn" class="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-[10px]">
-                    <span class="material-symbols-outlined" style="font-size:14px">group_add</span> 追加
-                </button>
+                <div class="flex gap-2">
+                    <button id="crew-add-btn" class="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-[10px]">
+                        <span class="material-symbols-outlined" style="font-size:14px">group_add</span> 追加
+                    </button>
+                </div>
             </div>
             ${crew.length > 0 ? crew.map(crewCard).join('') : '<p class="text-center py-8 text-xs text-muted border border-dashed border-border rounded-2xl">スタッフの登録はありません</p>'}
         </section>
+
+        <!-- EMERGENCY / TROUBLE SECTION -->
+        <section class="mb-12">
+            <p class="section-header">Trouble Response <span class="text-accent">•</span> 緊急連絡先</p>
+            <div class="grid grid-cols-1 gap-3">
+                ${(Store.emergency || []).map(e => `
+                    <a href="tel:${e.number}" class="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between active:scale-[0.98] transition-transform">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+                                <span class="material-symbols-outlined">call</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-text">${e.label}</p>
+                                <p class="text-[10px] font-display font-black text-accent tracking-widest">${e.number}</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-accent/40">arrow_forward_ios</span>
+                    </a>
+                `).join('')}
+            </div>
+            <div class="mt-4 p-5 bg-surface rounded-2xl border border-border border-dashed text-center">
+                <p class="text-[10px] text-muted mb-3 italic">トラブル発生時はPD/デスクへ即時報告してください</p>
+                <button class="text-[10px] font-bold text-primary flex items-center gap-1 mx-auto bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
+                    <span class="material-symbols-outlined text-sm">add_circle</span> 連絡先を追加
+                </button>
+            </div>
+        </section>
+
+        <!-- SHARE SUMMARY MODAL (Requirement 6) -->
+        <div id="share-modal" class="absolute inset-0 bg-bg/90 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-6">
+            <div class="bg-surface border border-border rounded-[2rem] w-full max-w-sm p-8 shadow-2xl slide-up">
+                <h3 class="font-display font-black text-xl mb-4 text-primary text-center">スタッフ共有情報</h3>
+                <textarea id="share-text" readonly class="w-full h-48 bg-bg border border-border rounded-xl p-4 text-[11px] font-mono leading-relaxed mb-6 resize-none focus:outline-none focus:border-primary"></textarea>
+                <div class="flex flex-col gap-3">
+                    <button id="copy-summary-btn" class="w-full bg-primary text-bg font-bold py-4 rounded-xl shadow-lg ring-4 ring-primary/10">テキストをコピー</button>
+                    <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="w-full bg-surface2 text-muted font-bold py-3 rounded-xl">閉じる</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -233,6 +281,51 @@ window.initCrew = function () {
     }
 
     // --- CREW LOGIC ---
+    // Share Functionality (Requirement 6)
+    document.getElementById('crew-share-btn')?.addEventListener('click', () => {
+        const performers = Store.performers;
+        const crew = Store.crew;
+        const prj = Store.project;
+
+        let txt = `【${prj.title || '制作案件'}】スタッフ・キャスト入り時間共有\n`;
+        txt += `撮影日: ${prj.shootDate || '未定'}\n`;
+        txt += `------------------------------\n\n`;
+
+        if (performers.length > 0) {
+            txt += `■出演者 (Cast)\n`;
+            performers.forEach(p => {
+                txt += `・${p.name || '未設定'}: 入${p.arrivalTime || '--:--'} / M${p.makeupTime || '--:--'} / 支度完了${p.readyTime || '--:--'} \n`;
+            });
+            txt += `\n`;
+        }
+
+        if (crew.length > 0) {
+            txt += `■スタッフ (Crew)\n`;
+            // 部署ごとに並び替えると丁寧
+            const sortedCrew = [...crew].sort((a,b) => a.dept.localeCompare(b.dept));
+            sortedCrew.forEach(c => {
+                txt += `・[${c.dept}] ${c.name}: ${c.callTime || '--:--'}入り\n`;
+            });
+        }
+
+        const modal = document.getElementById('share-modal');
+        const area = document.getElementById('share-text');
+        if (modal && area) {
+            area.value = txt;
+            modal.classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('copy-summary-btn')?.addEventListener('click', () => {
+        const area = document.getElementById('share-text');
+        if (area) {
+            area.select();
+            document.execCommand('copy');
+            window.showToast('📋 クリップボードにコピーしました', 'success');
+            document.getElementById('share-modal').classList.add('hidden');
+        }
+    });
+
     const crewModal = document.getElementById('crew-modal');
     document.getElementById('crew-add-btn')?.addEventListener('click', () => {
         resetCrewFields();

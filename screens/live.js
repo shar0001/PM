@@ -38,7 +38,7 @@ window.renderLive = function () {
     <section>
       <div class="flex items-center gap-2 mb-4">
           <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
-          <p class="section-header !mt-0 !mb-0 font-black">CURRENT <span class="text-primary">/</span> 撮影中</p>
+          <p class="section-header !mt-0 !mb-0 font-black">現在のカット <span class="text-primary">/</span> SCENE</p>
       </div>
 
       ${currentShot ? `
@@ -50,7 +50,7 @@ window.renderLive = function () {
             ${currentShot.number || '—'}
           </div>
           <div class="text-right">
-            <p class="text-[10px] text-muted uppercase font-display font-bold tracking-widest mb-1">SCHEDULED</p>
+            <p class="text-[10px] text-muted uppercase font-display font-bold tracking-widest mb-1">開始予定</p>
             <p class="text-2xl font-display font-black text-primary leading-none">${currentShot.startTime}</p>
           </div>
         </div>
@@ -68,15 +68,15 @@ window.renderLive = function () {
 
         <div class="flex flex-col gap-3">
           ${currentShot.status !== 'shooting' ? `
-            <button id="live-start-btn" class="w-full py-5 rounded-[1.5rem] bg-text text-bg font-display font-black text-sm uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl">
-              START FILMING
+            <button id="live-start-btn" class="w-full py-5 rounded-[1.5rem] bg-text text-bg font-bold text-sm uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl">
+              撮影を開始する
             </button>
           ` : `
-            <button id="live-finish-btn" class="w-full py-6 rounded-[1.5rem] bg-primary text-bg font-display font-black text-lg uppercase tracking-[0.2em] transition-all active:scale-95 shadow-2xl shadow-primary/30">
-              FINISH & NEXT
+            <button id="live-finish-btn" class="w-full py-6 rounded-[1.5rem] bg-primary text-bg font-bold text-lg uppercase tracking-[0.2em] transition-all active:scale-95 shadow-2xl shadow-primary/30">
+              完了して次のカットへ
             </button>
             <div class="text-center mt-2">
-                <span class="text-[10px] font-display font-black text-primary animate-pulse">● RECORDING IN PROGRESS</span>
+                <span class="text-[10px] font-bold text-primary animate-pulse">● 撮影進行中 / ON RECORD</span>
             </div>
           `}
         </div>
@@ -84,44 +84,44 @@ window.renderLive = function () {
       ` : `
       <div class="bg-surface2 rounded-[2.5rem] p-12 text-center text-muted border border-dashed border-border flex flex-col items-center">
         <span class="material-symbols-outlined text-6xl mb-6 opacity-20">celebration</span>
-        <p class="font-bold text-lg mb-2 text-text">撮影完了！</p>
-        <p class="text-xs">本日の全工程が終了しました</p>
+        <p class="font-bold text-lg mb-2 text-text">本日の撮影完了！</p>
+        <p class="text-xs">全工程が終了しました。お疲れ様でした。</p>
       </div>
-      `}
+    `}
     </section>
 
     <!-- NEXT UP -->
     <section>
-       <p class="section-header !mb-4">NEXT UP <span class="text-muted">•</span> 次のカット</p>
+       <p class="section-header !mb-4">次のカット <span class="text-muted">•</span> NEXT UP</p>
       ${nextShot ? `
       <div class="bg-surface rounded-3xl border border-border p-5 flex items-center gap-5 opacity-60 grayscale-[0.5]">
         <div class="w-12 h-12 bg-bg border border-border rounded-xl flex items-center justify-center font-display font-bold text-muted text-lg">
           ${nextShot.number || '—'}
         </div>
         <div class="flex-1">
-          <p class="text-[10px] text-muted font-display font-black uppercase tracking-widest mb-1">${nextShot.startTime} START</p>
+          <p class="text-[10px] text-muted font-bold uppercase tracking-widest mb-1">${nextShot.startTime} 開始予定</p>
           <h3 class="text-base font-bold truncate text-text">${nextShot.title}</h3>
         </div>
         <span class="material-symbols-outlined text-muted">arrow_forward_ios</span>
       </div>
-      ` : `
+    ` : `
       <div class="text-center py-6 border border-dashed border-border rounded-3xl opacity-30">
-          <p class="text-[10px] uppercase font-display font-black">Final Shot</p>
+          <p class="text-[10px] uppercase font-bold">終了 / Last Shot</p>
       </div>
-      `}
+    `}
     </section>
 
     <!-- STATS OVERVIEW -->
     <div class="grid grid-cols-2 gap-4">
         <div class="bg-surface2 rounded-3xl p-5 border border-border">
-            <p class="text-[9px] text-muted uppercase font-black tracking-widest mb-2">CUT PROGRESS</p>
+            <p class="text-[9px] text-muted uppercase font-bold tracking-widest mb-2">カット消化率 Status</p>
             <p class="text-2xl font-display font-black text-text">${stats.done} / ${stats.total}</p>
             <div class="w-full h-1.5 bg-border rounded-full mt-3 overflow-hidden">
                 <div class="h-full bg-success transition-all duration-1000" style="width:${stats.pct}%"></div>
             </div>
         </div>
         <div class="bg-surface2 rounded-3xl p-5 border border-border flex flex-col justify-center">
-            <p class="text-[9px] text-muted uppercase font-black tracking-widest mb-2">REMAINING</p>
+            <p class="text-[9px] text-muted uppercase font-bold tracking-widest mb-2">残りのカット数 Remaining</p>
             <p class="text-2xl font-display font-black text-text">${stats.total - stats.done} <span class="text-sm text-muted">CUTS</span></p>
         </div>
     </div>

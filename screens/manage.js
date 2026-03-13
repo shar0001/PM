@@ -59,7 +59,7 @@ window.renderManage = function () {
     </div>
 
     <!-- MAIN GRID -->
-    <div class="px-5 grid grid-cols-2 gap-4">
+    <div class="px-5 grid grid-cols-2 gap-6">
         
         <!-- Crew Management (BLUE) -->
         <button class="manage-tile" data-screen="crew" style="--tile-color: ${colors.crew}">
@@ -166,7 +166,7 @@ window.initManage = function () {
     // New Project
     document.getElementById('manage-new-prj')?.addEventListener('click', () => {
         if (confirm('新しい制作プロジェクトを開始しますか？')) {
-            const id = Store.newProject({ title: 'New Production' });
+            const id = Store.addProject(); // Fix: newProject -> addProject
             Store.switchProject(id);
             window.navigateTo('project-edit');
         }

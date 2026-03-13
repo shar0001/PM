@@ -177,13 +177,13 @@ window.initEquipment = function () {
                         <div class="h-1 bg-bg rounded-full overflow-hidden"><div class="h-full bg-primary" style="width:${item.media}%"></div></div>
                     </div>` : ''}
                 </div>
-                <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pt-1">
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar pt-2">
                     ${['standby', 'moving', 'in-use', 'removed'].map(key => {
-                        const l = { standby: '標準', moving: '移動', 'in-use': '使用', removed: '撤収' }[key];
-                        return `<button class="eq-status-btn flex-1 py-1.5 px-1 rounded-lg border text-[9px] font-black tracking-tighter whitespace-nowrap transition-all ${item.status === key ? 'bg-surface2 border-primary text-primary' : 'border-border text-muted bg-bg/50'}"
+                        const l = { standby: '準備中', moving: '移動中', 'in-use': '使用中', removed: '撤収済' }[key];
+                        return `<button class="eq-status-btn flex-1 py-2 px-1 rounded-xl border text-[10px] font-bold whitespace-nowrap transition-all ${item.status === key ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted bg-bg/50'}"
                                 data-id="${item.id}" data-status="${key}">${l}</button>`;
                     }).join('')}
-                    <button class="eq-edit-btn ml-auto w-8 h-8 flex items-center justify-center text-muted" data-id="${item.id}"><span class="material-symbols-outlined text-lg">edit</span></button>
+                    <button class="eq-edit-btn ml-auto w-10 h-10 flex items-center justify-center text-muted border border-border rounded-xl" data-id="${item.id}"><span class="material-symbols-outlined text-lg">edit</span></button>
                 </div>
             </div>`;
         }).join('') : `<p class="text-center py-12 text-xs text-muted border border-dashed border-border rounded-2xl">アイテムがありません</p>`;
