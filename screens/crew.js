@@ -95,7 +95,7 @@ window.renderCrew = function () {
             <h1 class="font-display font-bold text-2xl mb-1 text-text">スタッフ・出演者</h1>
             <p class="text-muted text-[11px] font-display uppercase tracking-wider">${crew.length + performers.length} PEOPLE ON SITE</p>
         </div>
-        <button id="crew-back" class="w-10 h-10 flex items-center justify-center rounded-xl border border-border text-muted">
+        <button id="crew-back" class="back-btn">
             <span class="material-symbols-outlined">arrow_back</span>
         </button>
     </header>

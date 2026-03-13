@@ -134,8 +134,11 @@ window.renderLogistics = function () {
 
     return `
 <div id="screen-logistics" class="screen" style="flex-direction:column">
-  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
-    <div>
+  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;gap:16px;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
+    <button id="loc-back" class="back-btn">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div style="flex:1">
       <h1 style="font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em">ロケーション</h1>
       <p style="color:var(--primary);font-size:10px;font-family:var(--font-display);font-weight:700">${locs.length} 箇所</p>
     </div>
@@ -210,6 +213,8 @@ window.renderLogistics = function () {
 
 /* ── 初期化 ─────────────────────────────────────────────── */
 window.initLogistics = function () {
+    document.getElementById('loc-back')?.addEventListener('click', () => window.navigateTo('manage'));
+
     const locs = Store.locations;
 
     // ── 天気データ取得 ────────────────────────────────────

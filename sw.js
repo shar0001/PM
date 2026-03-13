@@ -1,7 +1,7 @@
 /* =============================================================
    Production OS — Service Worker (PWA Offline Cache)
    ============================================================= */
-const CACHE_NAME = 'production-os-v28';
+const CACHE_NAME = 'production-os-v29';
 const ASSETS = [
     '/PM/',
     '/PM/index.html',

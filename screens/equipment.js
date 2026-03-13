@@ -79,7 +79,7 @@ window.renderEquipment = function () {
             <h1 class="font-display font-bold text-2xl mb-1 text-text">機材・備品管理</h1>
             <p class="text-muted text-[11px] font-display uppercase tracking-wider">${eq.length} ITEMS TOTAL</p>
         </div>
-        <button id="eq-back" class="w-10 h-10 flex items-center justify-center rounded-xl border border-border text-muted">
+        <button id="eq-back" class="back-btn">
             <span class="material-symbols-outlined">arrow_back</span>
         </button>
     </header>
@@ -131,6 +131,7 @@ window.renderEquipment = function () {
 };
 
 window.initEquipment = function () {
+    document.getElementById('eq-back')?.addEventListener('click', () => window.navigateTo('manage'));
     let activeDept = 'camera';
 
     function renderList() {

@@ -622,6 +622,26 @@ textarea.field-input {
 }
 
 /* ── Section headers ─────────────────────────────────── */
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.back-btn:active {
+    scale: 0.95;
+    background: var(--surface);
+}
+
 .section-header {
     font-family: var(--font-display);
     font-size: 10px;

@@ -24,6 +24,7 @@
     const HIDE_NAV = new Set(['simulator', 'callsheet', 'project-edit']);
 
     let currentScreen = null;
+    const scrollPositions = new Map();
 
     // ── Navigate ──────────────────────────────────────────
     window.navigateTo = function (screenId) {
@@ -42,6 +43,12 @@
         const container = document.getElementById('screen-container');
         if (!container) return;
 
+        // Save scroll
+        if (currentScreen) {
+            const scrollable = container.querySelector('.overflow-y-auto') || container.querySelector('.screen > div:not(.safe-top)');
+            if (scrollable) scrollPositions.set(currentScreen, scrollable.scrollTop);
+        }
+
         // Render
         try {
             container.innerHTML = renderFn();
@@ -59,10 +66,17 @@
             screenEl.style.cssText += 'display:flex !important; flex-direction:column; height:100%; overflow:hidden;';
         }
 
-        // Init interactions
+        // Init
         try { initFn?.(); } catch (e) {
             console.error('Screen init error:', e);
-            window.showToast('画面の初期化中にエラーが発生しました', 'error');
+        }
+
+        // Restore scroll
+        if (scrollPositions.has(screenId)) {
+            setTimeout(() => {
+                const scrollable = container.querySelector('.overflow-y-auto') || container.querySelector('.screen > div:not(.safe-top)');
+                if (scrollable) scrollable.scrollTop = scrollPositions.get(screenId);
+            }, 50);
         }
 
         // Update nav
