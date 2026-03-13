@@ -65,15 +65,6 @@ window.renderManage = function () {
     <!-- Section: ツール・設定 -->
     <p class="section-header">Tools & Tools</p>
     <div class="grid grid-cols-2 gap-3 mb-8">
-      <button class="manage-btn" data-screen="simulator">
-        <div class="manage-icon" style="background:var(--border); color:var(--text)">
-          <span class="material-symbols-outlined">tune</span>
-        </div>
-        <div class="manage-text">
-          <span class="title">シミュレーター</span>
-          <span class="desc">日の出・日没・照明</span>
-        </div>
-      </button>
       <button class="manage-btn" data-screen="callsheet">
         <div class="manage-icon" style="background:var(--border); color:var(--text)">
           <span class="material-symbols-outlined">description</span>
