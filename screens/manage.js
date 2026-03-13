@@ -71,7 +71,7 @@ window.renderManage = function () {
         </button>
 
         <!-- Performers (ROSE) -->
-        <button class="manage-tile" data-screen="crew" style="--tile-color: ${colors.performers}">
+        <button class="manage-tile" data-screen="crew" data-mode="cast" style="--tile-color: ${colors.performers}">
             <div class="tile-icon"><span class="material-symbols-outlined">person_pin</span></div>
             <div class="tile-content">
                 <span class="title">出演者・メイク</span>
@@ -141,6 +141,7 @@ window.initManage = function () {
             if (id !== Store.currentProjectId) {
                 Store.switchProject(id);
                 window.showToast(`✓ 「${Store.project.title}」に切り替えました`, 'success');
+                // 再描画
                 window.navigateTo('manage');
             }
         });
@@ -149,7 +150,16 @@ window.initManage = function () {
     // Navigation Tiles
     document.querySelectorAll('.manage-tile').forEach(tile => {
         tile.addEventListener('click', () => {
-            window.navigateTo(tile.dataset.screen);
+            const screen = tile.dataset.screen;
+            const mode = tile.dataset.mode;
+            // crew.js 側で mode: 'cast' を拾えるようにグローバルか Store に一時保存するなどの工夫が可能
+            // ここではシンプルに遷移
+            if (mode === 'cast') {
+                // 将来的に crew.js 側でキャストタブをデフォルト表示するなどの処理を追加可能
+                window.navigateTo('crew');
+            } else {
+                window.navigateTo(screen);
+            }
         });
     });
 

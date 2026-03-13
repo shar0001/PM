@@ -159,13 +159,25 @@ class AppStore {
     completeShot(id) {
         const shot = this._prj.shots.find(s => s.id === id);
         if (shot) {
-            shot.status = 'completed';
-            shot.completedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            const scheduledEnd = Utils.timeToMin(shot.startTime) + (shot.duration || 0);
-            const actualEnd = Utils.timeToMin(shot.completedAt);
-            const diff = actualEnd - scheduledEnd;
-            this.updateLiveState({ delayMinutes: (this.liveState.delayMinutes || 0) + diff });
+            if (shot.status === 'completed') {
+                // 完了取消ロジック
+                const oldActualEnd = Utils.timeToMin(shot.completedAt || shot.startTime) + (shot.duration || 0);
+                const scheduledEnd = Utils.timeToMin(shot.startTime) + (shot.duration || 0);
+                const diffToRemove = oldActualEnd - scheduledEnd;
+                
+                shot.status = 'upcoming';
+                shot.completedAt = null;
+                this.updateLiveState({ delayMinutes: (this.liveState.delayMinutes || 0) - diffToRemove });
+            } else {
+                // 完了実行ロジック
+                shot.status = 'completed';
+                shot.completedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const scheduledEnd = Utils.timeToMin(shot.startTime) + (shot.duration || 0);
+                const actualEnd = Utils.timeToMin(shot.completedAt);
+                const diff = actualEnd - scheduledEnd;
+                this.updateLiveState({ delayMinutes: (this.liveState.delayMinutes || 0) + diff });
+            }
             
             this._save();
             this.emit('shots');

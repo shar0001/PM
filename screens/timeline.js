@@ -49,6 +49,9 @@ window.renderTimeline = function () {
                         </div>
                     </div>
                     <div class="flex gap-2">
+                        <button class="tl-complete text-muted hover:text-success" data-id="${shot.id}" title="${isCompleted ? '完了取消' : '完了にする'}">
+                            <span class="material-symbols-outlined text-lg">${isCompleted ? 'undo' : 'check_circle'}</span>
+                        </button>
                         <button class="tl-edit text-muted hover:text-primary" data-id="${shot.id}">
                             <span class="material-symbols-outlined text-lg">edit</span>
                         </button>
@@ -132,6 +135,13 @@ window.initTimeline = function () {
     document.getElementById('tl-add-shot')?.addEventListener('click', () => {
         window._editShotTarget = null;
         window.navigateTo('shots');
+    });
+
+    document.querySelectorAll('.tl-complete').forEach(btn => {
+        btn.addEventListener('click', () => {
+            Store.completeShot(btn.dataset.id);
+            window.navigateTo('timeline');
+        });
     });
 
     document.querySelectorAll('.tl-edit').forEach(btn => {
