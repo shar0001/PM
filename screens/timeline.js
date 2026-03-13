@@ -99,18 +99,6 @@ window.renderTimeline = function () {
             </div>
         </div>
         
-        <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="bg-bg rounded-2xl p-3 border border-border">
-                <p class="text-[8px] text-muted uppercase font-black tracking-widest mb-1">CURRENT TIME</p>
-                <p id="tl-clock" class="text-lg font-display font-black text-primary">${Utils.nowStr()}</p>
-            </div>
-            <div class="bg-bg rounded-2xl p-3 border border-border">
-                <p class="text-[8px] text-muted uppercase font-black tracking-widest mb-1">STATUS</p>
-                <p class="text-lg font-display font-black" style="color:${delayColor}">
-                    ${delay === 0 ? 'ON TIME' : (delay > 0 ? '+' : '') + delay + 'm'}
-                </p>
-            </div>
-        </div>
     </header>
 
     <div class="flex-1 overflow-y-auto px-5 pt-6 pb-24" id="tl-list">

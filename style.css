@@ -95,9 +95,27 @@ body {
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 70px); /* Space for fixed nav */
 }
 
-/* ── Scrollbar ───────────────────────────────────────── */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1.5rem;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+    vertical-align: middle;
+}
 ::-webkit-scrollbar {
     width: 3px;
     height: 3px;
@@ -209,6 +227,10 @@ body {
 
 /* ── Bottom Nav ──────────────────────────────────────── */
 #bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     background: var(--surface);
     border-top: 1px solid var(--border);
     display: flex;
@@ -216,9 +238,7 @@ body {
     align-items: center;
     padding-top: 8px;
     padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
-    flex-shrink: 0;
-    z-index: 50;
-    position: relative;
+    z-index: 100; /* Ensure it's above everything */
 }
 
 .nav-btn {
@@ -442,13 +462,30 @@ textarea.field-input {
     border-radius: 20px 20px 0 0;
     padding: 20px 20px 32px;
     max-height: 90vh;
+    width: 100%;
     overflow-y: auto;
+    position: absolute;
+    bottom: 0;
+    left: 0;
     transform: translateY(100%);
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 150;
 }
 
 .modal-overlay.show .modal-sheet {
     transform: translateY(0);
+}
+
+/* Tablet/Desktop optimization for Modal */
+@media (min-width: 640px) {
+    .modal-sheet {
+        max-width: 600px;
+        left: 50%;
+        margin-left: -300px;
+        border-radius: 24px;
+        bottom: 24px;
+        max-height: 80vh;
+    }
 }
 
 .modal-sheet .modal-drag {
@@ -1080,8 +1117,8 @@ html.light-mode .chart-bar-bg {
         right: 14px;
     }
 
-    .bottom-nav {
-        padding: 6px 8px;
+    #bottom-nav {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
     }
 
     .nav-btn {
@@ -1097,6 +1134,22 @@ html.light-mode .chart-bar-bg {
     .modal-sheet {
         max-height: 90vh;
         padding: 16px !important;
+    }
+}
+
+/* Desktop optimization for Screen Container */
+@media (min-width: 1024px) {
+    #screen-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        box-shadow: 0 0 100px rgba(0,0,0,0.5);
+    }
+    #bottom-nav {
+        max-width: 1200px;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 

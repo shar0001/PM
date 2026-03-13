@@ -98,15 +98,31 @@ window.renderBudget = function () {
       </div>`;
   }
 
-  // カテゴリ凡例
+  // カテゴリ凡例 + 内訳表示
   const legendHtml = bud.categories.map((c, i) => {
     const cs = Store.getCategoryTotal(c.id);
-    return `<div style="display:flex;align-items:center;gap:6px;font-size:11px">
-      <div style="width:10px;height:10px;border-radius:3px;background:${catColors[i % catColors.length]};flex-shrink:0"></div>
-      <span style="color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.label}</span>
-      <span style="font-family:var(--font-display);font-weight:700;color:var(--text)">${Utils.fmtYen(cs)}</span>
+    const hasBreakdown = c.breakdown && c.breakdown.length > 0;
+    return `
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+        <div style="width:10px;height:10px;border-radius:3px;background:${catColors[i % catColors.length]};flex-shrink:0"></div>
+        <span style="color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.label}</span>
+        <span style="font-family:var(--font-display);font-weight:700;color:var(--text)">${Utils.fmtYen(cs)}</span>
+      </div>
+      ${hasBreakdown ? `
+      <div style="margin-left:16px;display:flex;flex-wrap:wrap;gap:4px">
+        ${c.breakdown.map(b => `<span style="font-size:8px;background:var(--surface2);color:var(--muted);padding:1px 5px;border-radius:4px;border:1px solid var(--border2)">${b.label}: ${Utils.fmtYen(parseInt(b.amount))}</span>`).join('')}
+      </div>` : ''}
     </div>`;
   }).join('');
+
+  // 総予算の内訳サマリー
+  const totalBreakdownHtml = (bud.totalBreakdown || []).map(b => `
+    <div style="background:var(--bg);padding:6px 12px;border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;color:var(--muted);font-weight:700">${b.label}</span>
+      <span style="font-family:var(--font-display);font-size:11px;font-weight:900;color:var(--primary)">${Utils.fmtYen(parseInt(b.amount))}</span>
+    </div>
+  `).join('');
 
   return `
 <div id="screen-budget" class="screen fade-enter" style="flex-direction:column;background:var(--bg)">
@@ -140,15 +156,18 @@ window.renderBudget = function () {
         <div style="flex:1;min-width:180px">
           <p style="font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">利用可能残高</p>
           <p style="font-family:var(--font-display);font-weight:900;font-size:28px;color:${pct >= 90 ? 'var(--accent)' : rem >= 0 ? 'var(--success)' : 'var(--accent)'};letter-spacing:-.02em;line-height:1;margin-bottom:14px">${Utils.fmtYen(rem)}</p>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--border)">
-              <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--muted)">総予算</span>
-              <span style="font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text)">${Utils.fmtYen(total)}</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+            <div style="display:flex;flex-direction:column;justify-content:center;background:var(--bg);padding:8px 12px;border-radius:10px;border:1px solid var(--border)">
+              <span style="font-family:var(--font-display);font-size:9px;font-weight:700;color:var(--muted);margin-bottom:2px">総予算額</span>
+              <span style="font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--text)">${Utils.fmtYen(total)}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--border)">
-              <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--muted)">総支出</span>
-              <span style="font-family:var(--font-display);font-size:12px;font-weight:700;color:${pct >= 90 ? 'var(--accent)' : 'var(--primary)'}">${Utils.fmtYen(spent)}</span>
+            <div style="display:flex;flex-direction:column;justify-content:center;background:var(--bg);padding:8px 12px;border-radius:10px;border:1px solid var(--border)">
+              <span style="font-family:var(--font-display);font-size:9px;font-weight:700;color:var(--muted);margin-bottom:2px">支出合計</span>
+              <span style="font-family:var(--font-display);font-size:12px;font-weight:900;color:${pct >= 90 ? 'var(--accent)' : 'var(--primary)'}">${Utils.fmtYen(spent)}</span>
             </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${totalBreakdownHtml}
           </div>
         </div>
       </div>
@@ -197,7 +216,25 @@ window.renderBudget = function () {
       <h3>総予算編集</h3>
       <div style="display:flex;flex-direction:column;gap:14px">
         <div><label class="field-label">総予算プール (¥)</label><input id="total-budget-input" class="field-input" type="number" value="${total}" min="0"/></div>
-        <p style="font-size:11px;color:var(--muted);line-height:1.5;background:var(--surface2);padding:10px;border-radius:8px">※ 各カテゴリの予算額は、それぞれのカテゴリ右上の「編集」から変更してください。</p>
+        
+        <div style="margin-top:10px">
+          <label class="field-label" style="display:flex;justify-content:space-between;align-items:center">
+            予算の内訳（どこからいくら）
+            <button id="add-total-breakdown-btn" style="background:var(--primary-t);color:var(--primary);border:none;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:800;cursor:pointer">+ 追加</button>
+          </label>
+          <div id="total-breakdown-container" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:200px;overflow-y:auto">
+            ${(bud.totalBreakdown || []).map((b, i) => `
+              <div class="breakdown-row" style="display:grid;grid-template-columns:1fr 100px 30px;gap:8px;align-items:center">
+                <input class="field-input b-label" style="padding:8px;font-size:12px" type="text" placeholder="例: クライアントA" value="${b.label}"/>
+                <input class="field-input b-amount" style="padding:8px;font-size:11px" type="number" placeholder="金額" value="${b.amount}"/>
+                <button class="b-del-btn" style="background:none;border:none;color:var(--muted);cursor:pointer"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+              </div>
+            `).join('')}
+            ${(!bud.totalBreakdown || bud.totalBreakdown.length === 0) ? '<p class="text-muted" style="font-size:10px;text-align:center;padding:10px">内訳はまだ登録されていません</p>' : ''}
+          </div>
+        </div>
+
+        <p style="font-size:11px;color:var(--muted);line-height:1.5;background:var(--surface2);padding:10px;border-radius:8px;margin-top:10px">※ 各カテゴリの予算額は、それぞれのカテゴリ右上の「編集」から変更してください。</p>
         <button id="budget-total-save-btn" class="btn-primary">保存する</button>
         <button id="budget-total-close" style="width:100%;background:none;border:1.5px solid var(--border2);border-radius:12px;color:var(--muted);font-family:var(--font-display);font-weight:700;font-size:13px;padding:12px;cursor:pointer">キャンセル</button>
       </div>
@@ -211,10 +248,23 @@ window.renderBudget = function () {
       <h3 id="cat-edit-modal-title">カテゴリ設定</h3>
       <div style="display:flex;flex-direction:column;gap:14px">
         <input type="hidden" id="cat-edit-id" />
-        <div><label class="field-label">アイコン (Material)</label><input id="cat-edit-icon" class="field-input" type="text" placeholder="folder / videocam / palette 等" /></div>
-        <div><label class="field-label">カテゴリ名</label><input id="cat-edit-label" class="field-input" type="text" placeholder="美術費など" /></div>
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:12px">
+          <div><label class="field-label">アイコン</label><input id="cat-edit-icon" class="field-input" type="text" placeholder="groups" /></div>
+          <div><label class="field-label">カテゴリ名</label><input id="cat-edit-label" class="field-input" type="text" placeholder="美術費など" /></div>
+        </div>
         <div><label class="field-label">予算割当 (¥)</label><input id="cat-edit-budget" class="field-input" type="number" min="0" placeholder="100000" /></div>
-        <button id="cat-edit-save" class="btn-primary">保存</button>
+        
+        <div style="border-top:1px solid var(--border);padding-top:14px">
+          <label class="field-label" style="display:flex;justify-content:space-between;align-items:center">
+            予算詳細（内訳）
+            <button id="add-cat-breakdown-btn" style="background:var(--primary-t);color:var(--primary);border:none;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:800;cursor:pointer">+ 詳細追加</button>
+          </label>
+          <div id="cat-breakdown-container" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:160px;overflow-y:auto">
+            <!-- Dynamic Category Breakdown Rows -->
+          </div>
+        </div>
+
+        <button id="cat-edit-save" class="btn-primary" style="margin-top:10px">保存</button>
         <button id="cat-edit-del" style="width:100%;background:none;border:1.5px solid var(--accent);border-radius:12px;color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:13px;padding:12px;cursor:pointer">このカテゴリを削除</button>
       </div>
     </div>
@@ -276,6 +326,23 @@ window.initBudget = function () {
     window.showToast(pieMode === 'category' ? 'カテゴリ別表示' : 'シンプル表示');
   });
 
+  // Breakdown UI Helper
+  function createBreakdownRow(label = '', amount = '') {
+    const div = document.createElement('div');
+    div.className = 'breakdown-row';
+    div.style.display = 'grid';
+    div.style.gridTemplateColumns = '1fr 100px 30px';
+    div.style.gap = '8px';
+    div.style.alignItems = 'center';
+    div.innerHTML = `
+      <input class="field-input b-label" style="padding:8px;font-size:12px" type="text" placeholder="項目名" value="${label}"/>
+      <input class="field-input b-amount" style="padding:8px;font-size:11px" type="number" placeholder="金額" value="${amount}"/>
+      <button class="b-del-btn" style="background:none;border:none;color:var(--muted);cursor:pointer"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+    `;
+    div.querySelector('.b-del-btn').addEventListener('click', () => div.remove());
+    return div;
+  }
+
   // Edit / Add Category
   document.querySelectorAll('.cat-edit-btn').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -288,8 +355,32 @@ window.initBudget = function () {
       document.getElementById('cat-edit-budget').value = cat.budget;
       document.getElementById('cat-edit-icon').value = cat.icon || 'folder';
       document.getElementById('cat-edit-del').style.display = 'block';
+
+      const container = document.getElementById('cat-breakdown-container');
+      container.innerHTML = '';
+      (cat.breakdown || []).forEach(b => container.appendChild(createBreakdownRow(b.label, b.amount)));
+      if (!cat.breakdown || cat.breakdown.length === 0) container.innerHTML = '<p class="text-muted empty-msg" style="font-size:10px;text-align:center;padding:10px">内訳はまだ登録されていません</p>';
+
       openModal('cat-edit-modal');
     });
+  });
+
+  document.getElementById('add-cat-breakdown-btn')?.addEventListener('click', () => {
+    const container = document.getElementById('cat-breakdown-container');
+    const empty = container.querySelector('.empty-msg');
+    if (empty) empty.remove();
+    container.appendChild(createBreakdownRow());
+  });
+
+  document.getElementById('add-total-breakdown-btn')?.addEventListener('click', () => {
+    const container = document.getElementById('total-breakdown-container');
+    const empty = container.querySelector('p');
+    if (empty && empty.textContent.includes('登録されていません')) empty.remove();
+    container.appendChild(createBreakdownRow());
+  });
+
+  document.querySelectorAll('.b-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.breakdown-row').remove());
   });
 
   document.getElementById('budget-add-new-cat')?.addEventListener('click', () => {
@@ -299,6 +390,7 @@ window.initBudget = function () {
     document.getElementById('cat-edit-budget').value = 0;
     document.getElementById('cat-edit-icon').value = 'folder';
     document.getElementById('cat-edit-del').style.display = 'none';
+    document.getElementById('cat-breakdown-container').innerHTML = '<p class="text-muted empty-msg" style="font-size:10px;text-align:center;padding:10px">詳細項目を追加できます</p>';
     openModal('cat-edit-modal');
   });
 
@@ -307,12 +399,21 @@ window.initBudget = function () {
     const label = document.getElementById('cat-edit-label')?.value.trim();
     const budget = parseInt(document.getElementById('cat-edit-budget')?.value) || 0;
     const icon = document.getElementById('cat-edit-icon')?.value.trim() || 'folder';
+    
+    // Collect breakdown
+    const breakdown = [];
+    document.querySelectorAll('#cat-breakdown-container .breakdown-row').forEach(row => {
+      const l = row.querySelector('.b-label').value.trim();
+      const a = row.querySelector('.b-amount').value;
+      if (l) breakdown.push({ label: l, amount: a });
+    });
+
     if (!label) { window.showToast('カテゴリ名を入力してください', 'error'); return; }
     if (id) {
-      Store.updateBudgetCategory(id, { label, budget, icon });
+      Store.updateBudgetCategory(id, { label, budget, icon, breakdown });
       window.showToast('✓ カテゴリを更新しました', 'success');
     } else {
-      Store.addBudgetCategory({ label, budget, icon });
+      Store.addBudgetCategory({ label, budget, icon, breakdown });
       window.showToast('✓ 新規カテゴリを追加しました', 'success');
     }
     closeModal('cat-edit-modal');
@@ -382,7 +483,16 @@ window.initBudget = function () {
   document.getElementById('budget-total-close')?.addEventListener('click', () => closeModal('budget-total-modal'));
   document.getElementById('budget-total-save-btn')?.addEventListener('click', () => {
     const total = parseInt(document.getElementById('total-budget-input')?.value) || 0;
-    if (total > 0) Store.updateBudgetTotal(total);
+    
+    // Collect breakdown
+    const breakdown = [];
+    document.querySelectorAll('#total-breakdown-container .breakdown-row').forEach(row => {
+      const l = row.querySelector('.b-label').value.trim();
+      const a = row.querySelector('.b-amount').value;
+      if (l) breakdown.push({ label: l, amount: a });
+    });
+
+    Store.updateBudgetTotal(total, breakdown);
     window.showToast('✓ 総予算を更新しました', 'success');
     closeModal('budget-total-modal');
     setTimeout(() => window.navigateTo('budget'), 150);

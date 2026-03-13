@@ -99,7 +99,14 @@ class AppStore {
     // ── Current project accessor ──────────────────────────
     get _prj() { return this._data.projects[this._data.currentProjectId]; }
     get currentProjectId() { return this._data.currentProjectId; }
-    get allProjects() { return Object.values(this._data.projects).map(p => ({ id: p.id, title: p.info.title, client: p.info.client, shootDate: p.info.shootDate })); }
+    get allProjects() { 
+        return Object.values(this._data.projects).map(p => ({ 
+            id: p.id, 
+            title: p.info?.title || 'Untitled', 
+            client: p.info?.client || 'None', 
+            shootDate: p.info?.shootDate || 'No date' 
+        })); 
+    }
     get project() { return this._prj.info; }
 
     addProject() {
@@ -236,8 +243,22 @@ class AppStore {
     get budget() { return this._prj.budget; }
     addExpense(exp) { const id = 'x' + Date.now(); this._prj.budget.expenses.push({ id, ...exp }); this._save(); this.emit('budget'); return id; }
     deleteExpense(id) { this._prj.budget.expenses = this._prj.budget.expenses.filter(e => e.id !== id); this._save(); this.emit('budget'); }
-    updateBudgetTotal(total) { this._prj.budget.total = total; this._save(); this.emit('budget'); }
-    updateBudgetCategory(catId, patch) { const c = this._prj.budget.categories.find(c => c.id === catId); if (c) { Object.assign(c, patch); this._save(); this.emit('budget'); } }
+    updateBudgetTotal(total, breakdown = []) { 
+        this._prj.budget.total = total; 
+        this._prj.budget.totalBreakdown = breakdown; 
+        this._save(); 
+        this.emit('budget'); 
+    }
+    updateBudgetCategory(catId, patch) { 
+        const c = this._prj.budget.categories.find(c => c.id === catId); 
+        if (c) { 
+            Object.assign(c, patch); 
+            // もし patch に breakdown が含まれていなければ既存のものを維持するように Object.assign でもカバーされるが、
+            // 明示的に breakdown も更新可能にする
+            this._save(); 
+            this.emit('budget'); 
+        } 
+    }
     addBudgetCategory(cat) { const id = 'cat' + Date.now(); this._prj.budget.categories.push({ id, ...cat }); this._save(); this.emit('budget'); }
     deleteBudgetCategory(catId) { this._prj.budget.categories = this._prj.budget.categories.filter(c => c.id !== catId); this._prj.budget.expenses = this._prj.budget.expenses.filter(e => e.cat !== catId); this._save(); this.emit('budget'); }
     getCategoryTotal(catId) { return this._prj.budget.expenses.filter(e => e.cat === catId).reduce((s, e) => s + e.amount, 0); }
