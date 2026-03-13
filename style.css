@@ -1089,45 +1089,80 @@ html.light-mode .chart-bar-bg {
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 20px 16px;
+}
+/* --- Integrated Management Hub V9 --- */
+.prj-chip {
+    scroll-snap-align: center;
+}
+.prj-chip.active .border {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px -10px rgba(var(--tile-color-rgb, 139, 92, 246), 0.3);
+}
+
+.manage-tile {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    text-align: center;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2rem;
+    padding: 1.5rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
 }
 
-.manage-btn:active {
-    transform: scale(0.96);
-    background: var(--surface2);
+.manage-tile:active {
+    transform: scale(0.95);
 }
 
-.manage-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+.manage-tile .tile-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: color-mix(in srgb, var(--tile-color), transparent 90%);
+    color: var(--tile-color);
+    border: 1px solid color-mix(in srgb, var(--tile-color), transparent 70%);
 }
 
-.manage-icon span {
-    font-size: 24px;
+.manage-tile .tile-icon span {
+    font-size: 1.5rem;
 }
 
-.manage-text .title {
-    display: block;
+.manage-tile .tile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.manage-tile .title {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 13px;
+    font-weight: 900;
+    font-size: 0.85rem;
     color: var(--text);
-    margin-bottom: 2px;
 }
 
-.manage-text .desc {
-    display: block;
-    font-size: 10px;
+.manage-tile .desc {
+    font-size: 0.7rem;
     color: var(--muted);
+}
+
+.manage-tile::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6rem;
+    height: 6rem;
+    background: var(--tile-color);
+    opacity: 0.03;
+    filter: blur(2rem);
+    border-radius: 50%;
+    transform: translate(2rem, -2rem);
 }
 
 /* ── Live Progress Mode ──────────────────────────── */

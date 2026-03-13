@@ -1,106 +1,171 @@
 /* =============================================================
-   Management Hub Screen — 管理機能一覧
+   Unified Management Hub V9 — Project Integrated
    ============================================================= */
 window.renderManage = function () {
-    const projects = Store.allProjects;
+    const projects = Store.allProjects || [];
+    const currentPrjId = Store.currentProjectId;
+
+    // Premium Color Palette
+    const colors = {
+        project: '#8B5CF6',    // Purple/Indigo
+        crew: '#3B82F6',       // Blue
+        performers: '#F43F5E', // Rose/Pink
+        equipment: '#F97316',  // Orange
+        budget: '#10B981',     // Emerald
+        logistics: '#06B6D4',  // Cyan/Teal
+        callsheet: '#64748B'   // Slate
+    };
+
+    function projectChip(p) {
+        const isActive = p.id === currentPrjId;
+        return `
+        <div class="prj-chip shrink-0 snap-center transition-all ${isActive ? 'active shadow-lg' : 'opacity-40'}" data-id="${p.id}">
+            <div class="p-4 rounded-3xl border w-40 min-h-[100px] flex flex-col justify-between" 
+                 style="background:${isActive ? colors.project + '11' : 'var(--surface)'}; 
+                        border-color:${isActive ? colors.project : 'var(--border)'}">
+                <div class="flex justify-between items-start">
+                    <span class="material-symbols-outlined text-lg" style="color:${isActive ? colors.project : 'var(--muted)'}">
+                        ${isActive ? 'check_circle' : 'work_outline'}
+                    </span>
+                </div>
+                <div>
+                   <h3 class="font-bold text-xs truncate leading-tight">${p.info.title || 'Untitled'}</h3>
+                   <p class="text-[9px] text-muted">${p.info.shootDate || 'No date'}</p>
+                </div>
+            </div>
+        </div>`;
+    }
+
     return `
 <div id="screen-manage" class="screen flex-col h-full bg-bg">
-  <header class="safe-top shrink-0 flex items-center justify-between px-5 py-4 border-b border-border">
-    <div>
-      <h1 class="font-display font-bold text-2xl mb-1 text-text">管理ハブ</h1>
-      <p class="text-muted text-[11px] font-display uppercase tracking-wider">Project Management Hub</p>
-    </div>
-    <button id="manage-prj-switch" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-muted font-display font-bold text-[10px] hover:bg-surface2 transition-colors">
-      <span class="material-symbols-outlined" style="font-size:14px">folder</span> 案件切替
-    </button>
+  <header class="safe-top shrink-0 px-5 pt-4 pb-2">
+    <h1 class="font-display font-bold text-2xl mb-1 text-text">管理ハブ</h1>
+    <p class="text-muted text-[11px] font-display uppercase tracking-widest">Master Control Panel</p>
   </header>
 
-  <div class="flex-1 overflow-y-auto p-5 pb-24">
-    <!-- Section: 制作・デスク -->
-    <p class="section-header !mt-0">Production & Desk</p>
-    <div class="grid grid-cols-2 gap-3 mb-8">
-      <button class="manage-btn" data-screen="crew">
-        <div class="manage-icon" style="background:rgba(232, 168, 50, 0.1); color:var(--primary)">
-          <span class="material-symbols-outlined">groups</span>
+  <div class="flex-1 overflow-y-auto pb-24">
+    
+    <!-- SECTION: PROJECT SELECTION -->
+    <div class="mb-8">
+        <div class="px-5 flex justify-between items-center mb-4">
+            <p class="text-[10px] font-display font-black text-muted uppercase tracking-widest">Active Projects</p>
+            <button id="manage-new-prj" class="text-[10px] font-bold text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">add_circle</span> 新規作成
+            </button>
         </div>
-        <div class="manage-text">
-          <span class="title">スタッフ・出演者</span>
-          <span class="desc">現場・ゲストの名簿</span>
+        <div class="flex gap-3 px-5 overflow-x-auto hide-scrollbar snap-x snap-mandatory py-2">
+            ${projects.map(projectChip).join('')}
         </div>
-      </button>
-      <button class="manage-btn" data-screen="budget">
-        <div class="manage-icon" style="background:rgba(52, 211, 153, 0.1); color:var(--success)">
-          <span class="material-symbols-outlined">account_balance_wallet</span>
-        </div>
-        <div class="manage-text">
-          <span class="title">予算・経費</span>
-          <span class="desc">実費・残予算管理</span>
-        </div>
-      </button>
     </div>
 
-    <!-- Section: 現場・機材 -->
-    <p class="section-header">Field & Gear</p>
-    <div class="grid grid-cols-2 gap-3 mb-8">
-      <button class="manage-btn" data-screen="equipment">
-        <div class="manage-icon" style="background:rgba(239, 69, 101, 0.1); color:var(--accent)">
-          <span class="material-symbols-outlined">videocam</span>
-        </div>
-        <div class="manage-text">
-          <span class="title">機材チェック</span>
-          <span class="desc">機材の搬入・搬出状態</span>
-        </div>
-      </button>
-      <button class="manage-btn" data-screen="logistics">
-        <div class="manage-icon" style="background:rgba(59, 130, 246, 0.1); color:#3b82f6">
-          <span class="material-symbols-outlined">location_on</span>
-        </div>
-        <div class="manage-text">
-          <span class="title">ロケ地・天気</span>
-          <span class="desc">集合場所・気象状況</span>
-        </div>
-      </button>
+    <!-- MAIN GRID -->
+    <div class="px-5 grid grid-cols-2 gap-4">
+        
+        <!-- Crew Management (BLUE) -->
+        <button class="manage-tile" data-screen="crew" style="--tile-color: ${colors.crew}">
+            <div class="tile-icon"><span class="material-symbols-outlined">group</span></div>
+            <div class="tile-content">
+                <span class="title">スタッフ協力</span>
+                <span class="desc">名簿・入り時間</span>
+            </div>
+        </button>
+
+        <!-- Performers (ROSE) -->
+        <button class="manage-tile" data-screen="crew" style="--tile-color: ${colors.performers}">
+            <div class="tile-icon"><span class="material-symbols-outlined">person_pin</span></div>
+            <div class="tile-content">
+                <span class="title">出演者・メイク</span>
+                <span class="desc">支度・衣装管理</span>
+            </div>
+        </button>
+
+        <!-- Equipment (ORANGE) -->
+        <button class="manage-tile" data-screen="equipment" style="--tile-color: ${colors.equipment}">
+            <div class="tile-icon"><span class="material-symbols-outlined">videocam_auto</span></div>
+            <div class="tile-content">
+                <span class="title">機材チェック</span>
+                <span class="desc">搬入・撤収・電池</span>
+            </div>
+        </button>
+
+        <!-- Budget (EMERALD) -->
+        <button class="manage-tile" data-screen="budget" style="--tile-color: ${colors.budget}">
+            <div class="tile-icon"><span class="material-symbols-outlined">payments</span></div>
+            <div class="tile-content">
+                <span class="title">予算・経費</span>
+                <span class="desc">実費・残金管理</span>
+            </div>
+        </button>
+
+        <!-- Logistics (CYAN) -->
+        <button class="manage-tile" data-screen="logistics" style="--tile-color: ${colors.logistics}">
+            <div class="tile-icon"><span class="material-symbols-outlined">cloud_sync</span></div>
+            <div class="tile-content">
+                <span class="title">ロケ地・天気</span>
+                <span class="desc">地図・気象情報</span>
+            </div>
+        </button>
+
+        <!-- Callsheet (SLATE) -->
+        <button class="manage-tile" data-screen="callsheet" style="--tile-color: ${colors.callsheet}">
+            <div class="tile-icon"><span class="material-symbols-outlined">description</span></div>
+            <div class="tile-content">
+                <span class="title">香盤表・PDF</span>
+                <span class="desc">配布・印刷用</span>
+            </div>
+        </button>
     </div>
 
-    <!-- Section: ツール・設定 -->
-    <p class="section-header">Tools & Tools</p>
-    <div class="grid grid-cols-2 gap-3 mb-8">
-      <button class="manage-btn" data-screen="callsheet">
-        <div class="manage-icon" style="background:var(--border); color:var(--text)">
-          <span class="material-symbols-outlined">description</span>
+    <!-- ADDITIONAL TOOLS -->
+    <div class="px-5 mt-10">
+        <p class="text-[10px] font-display font-black text-muted uppercase tracking-widest mb-4">System Tools</p>
+        <div class="flex flex-col gap-2">
+            <button id="manage-settings-btn" class="w-full bg-surface border border-border rounded-2xl p-4 flex items-center justify-between group active:scale-[0.98] transition-transform">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-muted group-hover:text-primary transition-colors">settings</span>
+                    <span class="text-[11px] font-bold text-text">アプリ設定・バックアップ</span>
+                </div>
+                <span class="material-symbols-outlined text-muted text-sm">arrow_forward_ios</span>
+            </button>
         </div>
-        <div class="manage-text">
-          <span class="title">香盤表・PDF</span>
-          <span class="desc">印刷・スタッフ配布用</span>
-        </div>
-      </button>
-    </div>
-
-    <!-- App Info / Settings Link -->
-    <div class="mt-4 p-4 rounded-2xl border border-dashed border-border flex flex-col items-center justify-center text-center">
-      <p class="text-muted text-[10px] uppercase font-display tracking-widest mb-2">Production OS V8.5</p>
-      <button id="manage-settings" class="text-primary text-xs font-bold border-b border-primary border-opacity-30">アプリ設定・インポート・エクスポート</button>
     </div>
   </div>
 </div>`;
 };
 
 window.initManage = function () {
-    document.querySelectorAll('.manage-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            window.navigateTo(btn.dataset.screen);
+    // Project switcher
+    document.querySelectorAll('.prj-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const id = chip.dataset.id;
+            if (id !== Store.currentProjectId) {
+                Store.switchProject(id);
+                window.showToast(`✓ 「${Store.project.title}」に切り替えました`, 'success');
+                window.navigateTo('manage');
+            }
         });
     });
 
-    document.getElementById('manage-prj-switch')?.addEventListener('click', () => {
-        window.navigateTo('projects');
+    // Navigation Tiles
+    document.querySelectorAll('.manage-tile').forEach(tile => {
+        tile.addEventListener('click', () => {
+            window.navigateTo(tile.dataset.screen);
+        });
     });
 
-    document.getElementById('manage-settings')?.addEventListener('click', () => {
+    // New Project
+    document.getElementById('manage-new-prj')?.addEventListener('click', () => {
+        if (confirm('新しい制作プロジェクトを開始しますか？')) {
+            const id = Store.newProject({ title: 'New Production' });
+            Store.switchProject(id);
+            window.navigateTo('project-edit');
+        }
+    });
+
+    // Settings
+    document.getElementById('manage-settings-btn')?.addEventListener('click', () => {
         const overlay = document.getElementById('drawer-overlay');
         if (overlay) {
-            overlay.style.opacity = '1';
-            overlay.style.pointerEvents = 'auto';
             overlay.classList.add('show');
         }
     });

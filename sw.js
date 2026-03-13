@@ -1,7 +1,7 @@
 /* =============================================================
    Production OS — Service Worker (PWA Offline Cache)
    ============================================================= */
-const CACHE_NAME = 'production-os-v8';
+const CACHE_NAME = 'production-os-v9';
 const ASSETS = [
     '/PM/',
     '/PM/index.html',
@@ -17,10 +17,11 @@ const ASSETS = [
     '/PM/screens/shots.js',
     '/PM/screens/logistics.js',
     '/PM/screens/budget.js',
-    '/PM/screens/simulator.js',
     '/PM/screens/kanban.js',
     '/PM/screens/crew.js',
     '/PM/screens/callsheet.js',
+    '/PM/screens/live.js',
+    '/PM/screens/manage.js',
     '/PM/icons/icon-192.png',
     '/PM/icons/icon-512.png',
     'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap',
