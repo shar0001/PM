@@ -263,8 +263,26 @@
     // ── Service Worker 登録 ─────────────────────────────────
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-            .then(r => console.log('SW registered:', r.scope))
+            .then(reg => {
+                console.log('SW registered:', reg.scope);
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.showToast('アップデートが見つかりました。最新版を読み込みます...', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
+                    };
+                };
+            })
             .catch(e => console.warn('SW registration failed:', e));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        });
     }
 
     boot();
