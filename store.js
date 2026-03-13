@@ -158,20 +158,30 @@ class AppStore {
     }
     completeShot(id) {
         const shot = this._prj.shots.find(s => s.id === id);
-        if (!shot) return;
-        if (shot.status === 'completed') {
-            this.updateShot(id, { status: 'upcoming', completedAt: null });
-            return;
+        if (shot) {
+            shot.status = 'completed';
+            shot.completedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const scheduledEnd = Utils.timeToMin(shot.startTime) + (shot.duration || 0);
+            const actualEnd = Utils.timeToMin(shot.completedAt);
+            const diff = actualEnd - scheduledEnd;
+            this.updateLiveState({ delayMinutes: (this.liveState.delayMinutes || 0) + diff });
+            
+            this._save();
+            this.emit('shots');
+            this.emit('live');
+            this.emit('timeline');
         }
-        const now = new Date();
-        const completedAt = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        this.updateShot(id, { status: 'completed', completedAt });
-        const order = this._prj.shotOrder;
-        const idx = order.indexOf(id);
-        if (idx >= 0 && idx < order.length - 1) {
-            const nextId = order[idx + 1];
-            const next = this._prj.shots.find(s => s.id === nextId);
-            if (next && next.status === 'upcoming') this.updateShot(nextId, { status: 'shooting' });
+    }
+    startShot(id) {
+        const shot = this._prj.shots.find(s => s.id === id);
+        if (shot) {
+            shot.status = 'shooting';
+            this.updateLiveState({ activeShotId: id });
+            this._save();
+            this.emit('shots');
+            this.emit('live');
+            this.emit('timeline');
         }
     }
     reorderShots(newOrder) {

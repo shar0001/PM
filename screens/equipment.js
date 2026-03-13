@@ -1,238 +1,257 @@
 /* =============================================================
-   Equipment Screen V2 — 機材CRUD・状態管理・紐付け
+   Equipment Management Hub V8.5 — Status Tracking & Gear OS
    ============================================================= */
 window.renderEquipment = function () {
-  const eq = Store.equipment;
-  const depts = ['camera', 'lighting', 'grip', 'audio'];
-  const deptLabel = { camera: 'カメラ', lighting: '照明', grip: 'グリップ', audio: '音響' };
-  const deptIcon = { camera: 'videocam', lighting: 'lightbulb', grip: 'build', audio: 'mic' };
+    const eq = Store.equipment;
+    const depts = ['camera', 'lighting', 'grip', 'audio'];
+    const deptLabel = { camera: 'カメラ', lighting: '照明', grip: 'グリップ', audio: '音響' };
+    const deptIcon = { camera: 'videocam', lighting: 'lightbulb', grip: 'build', audio: 'mic' };
 
-  function eqItem(item) {
-    const isInUse = item.status === 'in-use';
-    const battWarn = item.battery != null && item.battery < 20;
-    const mediaWarn = item.media != null && item.media > 85;
+    const statusMap = {
+        'standby': { label: '準備完了', color: 'var(--success)', icon: 'check_circle' },
+        'moving': { label: '移動中', color: 'var(--primary)', icon: 'local_shipping' },
+        'removed': { label: '撤収済', color: 'var(--muted)', icon: 'archive' },
+        'in-use': { label: '使用中', color: 'var(--accent)', icon: 'sensors' }
+    };
 
-    function resBar(val, icon, warn) {
-      if (val == null) return '';
-      const col = warn ? 'bg-accent' : 'bg-primary';
-      const tc = warn ? 'text-accent' : 'text-primary';
-      return `<div class="mt-2">
-        <div class="flex justify-between text-[10px] mb-1 font-display">
-          <span class="text-muted flex items-center gap-1"><span class="material-symbols-outlined text-[11px]">${icon}</span></span>
-          <span class="${tc} font-bold">${val}%</span>
-        </div>
-        <div class="h-1 w-full bg-background-dark rounded-full overflow-hidden">
-          <div class="${col} h-full shimmer-bar" style="width:${val}%"></div>
-        </div>
-      </div>`;
+    function eqItem(item) {
+        const s = statusMap[item.status || 'standby'];
+        const battWarn = item.battery != null && item.battery < 20;
+
+        return `
+        <div class="bg-surface border border-border rounded-2xl p-4 mb-3 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:${s.color}22; color:${s.color}; border:1px solid ${s.color}44">
+                            <span class="material-symbols-outlined text-[10px] align-middle mr-0.5">${s.icon}</span>${s.label}
+                        </span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">${item.name}</h3>
+                    <p class="text-[10px] text-muted">S/N: ${item.serial || '---'} • ${item.location || '機材車'}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="eq-edit-btn text-muted" data-id="${item.id}"><span class="material-symbols-outlined text-lg">edit</span></button>
+                    <button class="eq-del-btn text-muted hover:text-accent" data-id="${item.id}"><span class="material-symbols-outlined text-lg">delete</span></button>
+                </div>
+            </div>
+
+            <!-- Resource Bars -->
+            <div class="grid grid-cols-2 gap-4 mb-3">
+                ${item.battery != null ? `
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[9px] font-bold">
+                        <span class="text-muted flex items-center gap-1"><span class="material-symbols-outlined text-[11px]">battery_5_bar</span>BATT</span>
+                        <span class="${battWarn ? 'text-accent' : 'text-success'}">${item.battery}%</span>
+                    </div>
+                    <div class="h-1 bg-bg rounded-full overflow-hidden">
+                        <div class="h-full ${battWarn ? 'bg-accent' : 'bg-success'}" style="width:${item.battery}%"></div>
+                    </div>
+                </div>` : ''}
+                ${item.media != null ? `
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[9px] font-bold">
+                        <span class="text-muted flex items-center gap-1"><span class="material-symbols-outlined text-[11px]">sd_card</span>MEDIA</span>
+                        <span class="text-primary">${item.media}%</span>
+                    </div>
+                    <div class="h-1 bg-bg rounded-full overflow-hidden">
+                        <div class="h-full bg-primary" style="width:${item.media}%"></div>
+                    </div>
+                </div>` : ''}
+            </div>
+
+            <!-- Status Quick Actions -->
+            <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pt-1">
+                ${Object.entries(statusMap).map(([key, val]) => `
+                    <button class="eq-status-btn flex-1 py-1.5 px-2 rounded-lg border text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all ${item.status === key ? 'bg-surface2 border-primary text-primary' : 'border-border text-muted bg-bg/50'}"
+                            data-id="${item.id}" data-status="${key}">
+                        ${val.label}
+                    </button>
+                `).join('')}
+            </div>
+        </div>`;
     }
 
     return `
-      <div class="bg-surface border border-border-col rounded-lg p-4 eq-item" data-eq-id="${item.id}">
-        <div class="flex justify-between items-start gap-2">
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="status-pill status-${isInUse ? 'in-use' : 'standby'}">${isInUse ? '使用中' : 'スタンバイ'}</span>
+<div id="screen-equipment" class="screen flex-col h-full bg-bg">
+    <header class="safe-top shrink-0 flex items-center justify-between px-5 py-4 border-b border-border">
+        <div>
+            <h1 class="font-display font-bold text-2xl mb-1 text-text">機材・備品管理</h1>
+            <p class="text-muted text-[11px] font-display uppercase tracking-wider">${eq.length} ITEMS TOTAL</p>
+        </div>
+        <button id="eq-back" class="w-10 h-10 flex items-center justify-center rounded-xl border border-border text-muted">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+    </header>
+
+    <div id="eq-dept-tabs" class="shrink-0 flex gap-2 px-5 py-3 border-b border-border overflow-x-auto hide-scrollbar">
+        ${depts.map(d => `
+            <button class="eq-tab px-4 py-2 rounded-full border border-border text-xs font-bold whitespace-nowrap transition-colors" data-dept="${d}">
+                <span class="material-symbols-outlined text-sm align-middle mr-1">${deptIcon[d]}</span>${deptLabel[d]}
+            </button>
+        `).join('')}
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-5 pt-4 pb-24" id="eq-list">
+        <!-- Rendered by init -->
+    </div>
+
+    <button id="eq-add-btn" class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-bg rounded-2xl shadow-xl flex items-center justify-center z-10 transition-transform active:scale-95">
+        <span class="material-symbols-outlined text-3xl">add</span>
+    </button>
+
+    <!-- Modal -->
+    <div id="eq-modal" class="absolute inset-0 bg-bg/90 backdrop-blur-sm z-30 hidden flex-col justify-end">
+        <div class="bg-surface rounded-t-3xl p-6 border-t border-border slide-up">
+            <h3 id="eq-modal-title" class="font-display font-bold text-lg mb-5">機材を追加</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="eq-id"/>
+                <div><label class="field-label">名称</label><input id="eq-name" class="field-input" type="text" placeholder="Alexa / Slider etc."/></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="field-label">カテゴリ</label>
+                        <select id="eq-category" class="field-input">
+                            <option value="camera">カメラ</option><option value="lighting">照明</option>
+                            <option value="grip">グリップ</option><option value="audio">音響</option>
+                        </select>
+                    </div>
+                    <div><label class="field-label">シリアル</label><input id="eq-serial" class="field-input" type="text" placeholder="S/N"/></div>
+                </div>
+                <div><label class="field-label">保管場所</label><input id="eq-location" class="field-input" type="text" placeholder="A-Cam Case / Car A"/></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="field-label">バッテリー (%)</label><input id="eq-batt" class="field-input" type="number" placeholder="100"/></div>
+                    <div><label class="field-label">メディア (%)</label><input id="eq-media" class="field-input" type="number" placeholder="100"/></div>
+                </div>
+                <button id="eq-save-btn" class="w-full bg-primary text-bg font-bold py-4 rounded-2xl mt-4">保存する</button>
+                <button id="eq-modal-close" class="w-full text-muted py-2 text-sm mt-2">キャンセル</button>
             </div>
-            <h3 class="font-display font-bold text-sm mt-0.5 leading-snug">${item.name}</h3>
-            <p class="text-[10px] text-muted">${item.id} • S/N: ${item.serial}</p>
-            <p class="text-[11px] text-text-main mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-muted">location_on</span>${item.location}</p>
-          </div>
-          <div class="flex flex-col items-end gap-2 shrink-0">
-            <div class="toggle-switch ${isInUse ? 'on' : ''}" data-toggle-id="${item.id}"><div class="toggle-knob"></div></div>
-            <div class="flex gap-1">
-              <button class="eq-edit-btn w-7 h-7 flex items-center justify-center rounded border border-border-col text-muted hover:text-primary hover:border-primary transition-colors text-[12px]" data-eq-edit="${item.id}">
-                <span class="material-symbols-outlined" style="font-size:14px">edit</span>
-              </button>
-              <button class="eq-del-btn w-7 h-7 flex items-center justify-center rounded border border-border-col text-muted hover:text-accent hover:border-accent transition-colors" data-eq-del="${item.id}">
-                <span class="material-symbols-outlined" style="font-size:14px">delete</span>
-              </button>
-            </div>
-          </div>
         </div>
-        ${battWarn || mediaWarn ? '<div class="mt-2 text-[10px] text-accent flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">warning</span>要注意</div>' : ''}
-        ${resBar(item.battery, 'battery_5_bar', battWarn)}
-        ${resBar(item.media, 'sd_card', mediaWarn)}
-        ${item.notes ? `<p class="text-[10px] text-muted mt-2">※ ${item.notes}</p>` : ''}
-      </div>`;
-  }
-
-  return `
-<div id="screen-equipment" class="screen flex-col h-full">
-  <header class="shrink-0 bg-background-dark border-b border-border-col">
-    <div class="flex items-center justify-between px-4 py-3">
-      <h1 class="font-display font-bold text-lg">機材管理</h1>
-      <button id="eq-add-btn" class="w-9 h-9 flex items-center justify-center rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors">
-        <span class="material-symbols-outlined text-base">add</span>
-      </button>
     </div>
-    <div id="eq-dept-tabs" class="flex border-b border-border-col overflow-x-auto hide-scrollbar">
-      ${depts.map((d, i) => `
-        <button class="eq-dept-tab flex flex-col items-center py-2.5 px-4 min-w-[80px] border-b-2 transition-colors ${i === 0 ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-text-main'}" data-dept="${d}">
-          <span class="material-symbols-outlined text-lg mb-0.5 ${i === 0 ? 'text-primary' : ''}">${deptIcon[d]}</span>
-          <span class="text-[10px] font-display font-bold">${deptLabel[d]}</span>
-          <span class="text-[9px] text-muted">${eq.filter(e => e.category === d).length}点</span>
-        </button>`).join('')}
-    </div>
-  </header>
-
-  <div id="eq-content" class="flex-1 overflow-y-auto pb-4">
-    ${depts.map((d, i) => `
-      <section id="eq-dept-${d}" class="${i === 0 ? '' : 'hidden'} p-4 space-y-3">
-        <p class="section-header">${deptLabel[d]} — ${eq.filter(e => e.category === d).length}点</p>
-        ${eq.filter(e => e.category === d).length === 0
-      ? '<p class="text-xs text-muted text-center py-8">機材が登録されていません</p>'
-      : eq.filter(e => e.category === d).map(eqItem).join('')}
-      </section>`).join('')}
-  </div>
-
-  <!-- Add/Edit Modal -->
-  <div id="eq-modal" class="absolute inset-0 bg-background-dark/90 backdrop-blur-sm z-20 hidden flex-col justify-end">
-    <div class="bg-surface border-t border-border-col rounded-t-2xl px-5 pt-5 pb-8 slide-up overflow-y-auto max-h-[80vh]">
-      <div class="flex justify-between items-center mb-5">
-        <h3 id="eq-modal-title" class="font-display font-bold text-lg">機材を追加</h3>
-        <button id="eq-modal-close" class="text-muted hover:text-text-main"><span class="material-symbols-outlined">close</span></button>
-      </div>
-      <div class="space-y-4">
-        <input type="hidden" id="eq-edit-id"/>
-        <div>
-          <label class="field-label">機材名</label>
-          <input id="eq-name" class="field-input" type="text" placeholder="ARRI Alexa Mini LF"/>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="field-label">カテゴリ</label>
-            <select id="eq-category" class="field-input">
-              ${Object.entries(deptLabel).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="field-label">シリアル番号</label>
-            <input id="eq-serial" class="field-input" type="text" placeholder="ABC-1234"/>
-          </div>
-        </div>
-        <div>
-          <label class="field-label">保管場所・現在位置</label>
-          <input id="eq-location" class="field-input" type="text" placeholder="A-Cam Cart"/>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="field-label">バッテリー (%)</label>
-            <input id="eq-battery" class="field-input" type="number" min="0" max="100" placeholder="—"/>
-          </div>
-          <div>
-            <label class="field-label">メディア残量 (%)</label>
-            <input id="eq-media" class="field-input" type="number" min="0" max="100" placeholder="—"/>
-          </div>
-        </div>
-        <div>
-          <label class="field-label">メモ</label>
-          <input id="eq-notes" class="field-input" type="text" placeholder="注意事項など"/>
-        </div>
-        <button id="eq-save-btn" class="w-full bg-primary text-background-dark font-display font-bold py-3.5 rounded-xl uppercase tracking-widest text-sm hover:opacity-90 transition-opacity">保存</button>
-      </div>
-    </div>
-  </div>
 </div>`;
 };
 
 window.initEquipment = function () {
-  // Dept tabs
-  document.querySelectorAll('.eq-dept-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.eq-dept-tab').forEach(b => {
-        b.classList.remove('border-primary', 'text-primary');
-        b.classList.add('border-transparent', 'text-muted');
-        b.querySelector('.material-symbols-outlined')?.classList.remove('text-primary');
-      });
-      btn.classList.add('border-primary', 'text-primary');
-      btn.querySelector('.material-symbols-outlined')?.classList.add('text-primary');
-      document.querySelectorAll('[id^="eq-dept-"]').forEach(s => s.classList.add('hidden'));
-      document.getElementById(`eq-dept-${btn.dataset.dept}`)?.classList.remove('hidden');
+    let activeDept = 'camera';
+
+    function renderList() {
+        const listEl = document.getElementById('eq-list');
+        if (!listEl) return;
+        const filtered = Store.equipment.filter(e => e.category === activeDept);
+        listEl.innerHTML = filtered.length > 0 ? filtered.map(item => {
+            const s = {
+                'standby': { label: '準備完了', color: 'var(--success)', icon: 'check_circle' },
+                'moving': { label: '移動中', color: 'var(--primary)', icon: 'local_shipping' },
+                'removed': { label: '撤収済', color: 'var(--muted)', icon: 'archive' },
+                'in-use': { label: '使用中', color: 'var(--accent)', icon: 'sensors' }
+            }[item.status || 'standby'];
+            const battWarn = item.battery != null && item.battery < 20;
+
+            return `
+            <div class="bg-surface border border-border rounded-2xl p-4 mb-3 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:${s.color}22; color:${s.color}; border:1px solid ${s.color}44">
+                                <span class="material-symbols-outlined text-[10px] align-middle mr-0.5">${s.icon}</span>${s.label}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-sm truncate">${item.name}</h3>
+                        <p class="text-[10px] text-muted">S/N: ${item.serial || '---'} • ${item.location || '機材車'}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-3">
+                    ${item.battery != null ? `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-[9px] font-bold">
+                            <span class="text-muted flex items-center gap-1">BATT</span>
+                            <span class="${battWarn ? 'text-accent' : 'text-success'}">${item.battery}%</span>
+                        </div>
+                        <div class="h-1 bg-bg rounded-full overflow-hidden"><div class="h-full ${battWarn ? 'bg-accent' : 'bg-success'}" style="width:${item.battery}%"></div></div>
+                    </div>` : ''}
+                    ${item.media != null ? `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-[9px] font-bold">
+                            <span class="text-muted flex items-center gap-1">MEDIA</span>
+                            <span class="text-primary">${item.media}%</span>
+                        </div>
+                        <div class="h-1 bg-bg rounded-full overflow-hidden"><div class="h-full bg-primary" style="width:${item.media}%"></div></div>
+                    </div>` : ''}
+                </div>
+                <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pt-1">
+                    ${['standby', 'moving', 'in-use', 'removed'].map(key => {
+                        const l = { standby: '標準', moving: '移動', 'in-use': '使用', removed: '撤収' }[key];
+                        return `<button class="eq-status-btn flex-1 py-1.5 px-1 rounded-lg border text-[9px] font-black tracking-tighter whitespace-nowrap transition-all ${item.status === key ? 'bg-surface2 border-primary text-primary' : 'border-border text-muted bg-bg/50'}"
+                                data-id="${item.id}" data-status="${key}">${l}</button>`;
+                    }).join('')}
+                    <button class="eq-edit-btn ml-auto w-8 h-8 flex items-center justify-center text-muted" data-id="${item.id}"><span class="material-symbols-outlined text-lg">edit</span></button>
+                </div>
+            </div>`;
+        }).join('') : `<p class="text-center py-12 text-xs text-muted border border-dashed border-border rounded-2xl">アイテムがありません</p>`;
+
+        // Re-attach listeners
+        document.querySelectorAll('.eq-status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                Store.updateEquipment(btn.dataset.id, { status: btn.dataset.status });
+                renderList();
+            });
+        });
+        document.querySelectorAll('.eq-edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = Store.equipment.find(e => e.id === btn.dataset.id);
+                if (item) openEqModal(item);
+            });
+        });
+    }
+
+    // Tabs
+    document.querySelectorAll('.eq-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            activeDept = tab.dataset.dept;
+            document.querySelectorAll('.eq-tab').forEach(t => t.classList.remove('bg-primary', 'text-bg', 'border-primary'));
+            tab.classList.add('bg-primary', 'text-bg', 'border-primary');
+            renderList();
+        });
     });
-  });
 
-  // Toggle status
-  document.querySelectorAll('.toggle-switch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      sw.classList.toggle('on');
-      const newStatus = sw.classList.contains('on') ? 'in-use' : 'standby';
-      Store.updateEquipment(sw.dataset.toggleId, { status: newStatus });
-      // Update pill text without full re-render
-      const pill = sw.closest('.eq-item')?.querySelector('.status-pill');
-      if (pill) {
-        pill.textContent = newStatus === 'in-use' ? '使用中' : 'スタンバイ';
-        pill.className = `status-pill status-${newStatus}`;
-      }
+    // Initial tab active
+    const firstTab = document.querySelector('.eq-tab[data-dept="camera"]');
+    if (firstTab) firstTab.click();
+
+    // Back
+    document.getElementById('eq-back')?.addEventListener('click', () => window.navigateTo('manage'));
+
+    // Modal logic
+    const modal = document.getElementById('eq-modal');
+    document.getElementById('eq-add-btn')?.addEventListener('click', () => openEqModal(null));
+    document.getElementById('eq-modal-close')?.addEventListener('click', () => modal?.classList.add('hidden'));
+
+    function openEqModal(item) {
+        document.getElementById('eq-id').value = item?.id || '';
+        document.getElementById('eq-name').value = item?.name || '';
+        document.getElementById('eq-category').value = item?.category || 'camera';
+        document.getElementById('eq-serial').value = item?.serial || '';
+        document.getElementById('eq-location').value = item?.location || '';
+        document.getElementById('eq-batt').value = item?.battery || '';
+        document.getElementById('eq-media').value = item?.media || '';
+        document.getElementById('eq-modal-title').textContent = item ? '機材を編集' : '機材を追加';
+        modal?.classList.remove('hidden');
+    }
+
+    document.getElementById('eq-save-btn')?.addEventListener('click', () => {
+        const id = document.getElementById('eq-id').value;
+        const data = {
+            name: document.getElementById('eq-name').value.trim(),
+            category: document.getElementById('eq-category').value,
+            serial: document.getElementById('eq-serial').value.trim(),
+            location: document.getElementById('eq-location').value.trim(),
+            battery: document.getElementById('eq-batt').value !== '' ? parseInt(document.getElementById('eq-batt').value) : null,
+            media: document.getElementById('eq-media').value !== '' ? parseInt(document.getElementById('eq-media').value) : null,
+            status: id ? Store.equipment.find(e => e.id === id).status : 'standby'
+        };
+        if (!data.name) return window.showToast('名称を入力してください', 'error');
+        if (id) Store.updateEquipment(id, data);
+        else Store.addEquipment(data);
+        modal?.classList.add('hidden');
+        renderList();
     });
-  });
-
-  // Delete
-  document.querySelectorAll('.eq-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm('この機材を削除しますか？')) {
-        Store.deleteEquipment(btn.dataset.eqDel);
-        window.showToast('機材を削除しました');
-        window.navigateTo('equipment');
-      }
-    });
-  });
-
-  // Edit
-  document.querySelectorAll('.eq-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const item = Store.equipment.find(e => e.id === btn.dataset.eqEdit);
-      if (item) openEqModal(item);
-    });
-  });
-
-  // Modal
-  const modal = document.getElementById('eq-modal');
-  const addBtn = document.getElementById('eq-add-btn');
-  const closeBtn = document.getElementById('eq-modal-close');
-  const saveBtn = document.getElementById('eq-save-btn');
-
-  addBtn?.addEventListener('click', () => openEqModal(null));
-  closeBtn?.addEventListener('click', () => modal?.classList.add('hidden'));
-  modal?.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
-
-  saveBtn?.addEventListener('click', () => {
-    const editId = document.getElementById('eq-edit-id')?.value;
-    const data = {
-      name: document.getElementById('eq-name')?.value.trim() || '',
-      category: document.getElementById('eq-category')?.value || 'camera',
-      serial: document.getElementById('eq-serial')?.value.trim() || '',
-      location: document.getElementById('eq-location')?.value.trim() || '',
-      battery: document.getElementById('eq-battery')?.value !== '' ? parseInt(document.getElementById('eq-battery').value) : null,
-      media: document.getElementById('eq-media')?.value !== '' ? parseInt(document.getElementById('eq-media').value) : null,
-      notes: document.getElementById('eq-notes')?.value.trim() || '',
-      status: 'standby',
-    };
-    if (!data.name) { window.showToast('機材名を入力してください', 'error'); return; }
-    if (editId) { Store.updateEquipment(editId, data); window.showToast('✓ 機材を更新しました', 'success'); }
-    else { Store.addEquipment(data); window.showToast('✓ 機材を追加しました', 'success'); }
-    modal?.classList.add('hidden');
-    window.navigateTo('equipment');
-  });
 };
-
-function openEqModal(item) {
-  const modal = document.getElementById('eq-modal');
-  const title = document.getElementById('eq-modal-title');
-  if (title) title.textContent = item ? '機材を編集' : '機材を追加';
-  const fields = {
-    'eq-edit-id': item?.id || '',
-    'eq-name': item?.name || '',
-    'eq-serial': item?.serial || '',
-    'eq-location': item?.location || '',
-    'eq-battery': item?.battery != null ? item.battery : '',
-    'eq-media': item?.media != null ? item.media : '',
-    'eq-notes': item?.notes || '',
-  };
-  Object.entries(fields).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  });
-  if (item?.category) { const sel = document.getElementById('eq-category'); if (sel) sel.value = item.category; }
-  modal?.classList.remove('hidden');
-}

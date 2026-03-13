@@ -1,315 +1,285 @@
 /* =============================================================
-   Crew Portal Screen V7 — スタッフ管理・並び替え・入り時間可視化
+   Crew & Cast Management V8 — 現場OS対応版
    ============================================================= */
 window.renderCrew = function () {
-  const crew = [...Store.crew].sort((a, b) => {
-    const deptOrder = ['Direction', 'Camera', 'Electric', 'Audio', 'Art', 'HMU', 'Cast', 'Production', 'その他'];
-    const ai = deptOrder.indexOf(a.dept); const bi = deptOrder.indexOf(b.dept);
-    const deptCmp = (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-    if (deptCmp !== 0) return deptCmp;
-    return (a.callTime || '').localeCompare(b.callTime || '');
-  });
-  const depts = [...new Set(crew.map(c => c.dept))].sort((a, b) => {
-    const order = ['Direction', 'Camera', 'Electric', 'Audio', 'Art', 'HMU', 'Cast', 'Production', 'その他'];
-    return (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 99 : order.indexOf(b));
-  });
+    const crew = Store.crew || [];
+    const performers = Store.performers || [];
 
-  // Build timeline rows sorted by callTime
-  const timelineCrew = [...crew].sort((a, b) => (a.callTime || '00:00').localeCompare(b.callTime || '00:00'));
-  const deptColors = {
-    'Direction': '#E8A832', 'Camera': '#4F91FF', 'Electric': '#F7C948',
-    'Audio': '#A78BFA', 'Art': '#34D399', 'HMU': '#F472B6',
-    'Cast': '#EF4565', 'Production': '#60A5FA', 'その他': '#7A7670'
-  };
+    const deptColors = {
+        'Direction': '#E8A832', 'Camera': '#4F91FF', 'Electric': '#F7C948',
+        'Audio': '#A78BFA', 'Art': '#34D399', 'HMU': '#F472B6',
+        'Cast': '#EF4565', 'Production': '#60A5FA', 'その他': '#7A7670'
+    };
 
-  function crewCard(c) {
-    const color = deptColors[c.dept] || '#7A7670';
-    return `
-      <div class="slide-up-enter crew-card" data-crew-id="${c.id}" draggable="true" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:grab;transition:background .2s" onmouseenter="this.style.background='rgba(255,255,255,0.03)'" onmouseleave="this.style.background='transparent'">
-        <span class="material-symbols-outlined" style="font-size:16px;color:var(--border2);cursor:grab;flex-shrink:0">drag_indicator</span>
-        <div style="width:40px;height:40px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display);font-weight:900;font-size:14px;color:${color}">
-          ${c.name.charAt(0)}
-        </div>
-        <div style="flex:1;min-width:0">
-          <p style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);margin-bottom:2px">${c.name}</p>
-          <p style="font-size:11px;color:var(--muted)">${c.role}</p>
-          ${c.phone ? `<a href="tel:${c.phone}" style="font-size:10px;color:var(--primary);display:flex;align-items:center;gap:3px;margin-top:2px"><span class="material-symbols-outlined" style="font-size:11px">phone</span>${c.phone}</a>` : ''}
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <p style="font-size:8px;color:var(--muted);margin-bottom:2px">集合</p>
-          <p style="font-family:var(--font-display);font-weight:900;font-size:20px;color:${color};letter-spacing:-.02em;line-height:1">${c.callTime || '--:--'}</p>
-          <span style="display:inline-block;margin-top:4px;background:${color}22;border:1px solid ${color}44;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;color:${color};white-space:nowrap">${c.dept}</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-          <button class="crew-edit-btn" data-crew-edit="${c.id}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--muted);transition:all .2s">
-            <span class="material-symbols-outlined" style="font-size:14px">edit</span>
-          </button>
-          <button class="crew-del-btn" data-crew-del="${c.id}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--muted);transition:all .2s">
-            <span class="material-symbols-outlined" style="font-size:14px">delete</span>
-          </button>
-        </div>
-      </div>`;
-  }
-
-  // Timeline visualization
-  const timelineHtml = timelineCrew.length > 0 ? `
-      <div style="padding:16px;overflow-x:auto" class="hide-scrollbar">
-        <p style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">入り時間タイムライン</p>
-        <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-          ${timelineCrew.map(c => {
-    const color = deptColors[c.dept] || '#7A7670';
-    const [h, m] = (c.callTime || '09:00').split(':').map(Number);
-    const startMin = 6 * 60; const totalMin = 20 * 60;
-    const cur = h * 60 + m;
-    const pct = Math.max(0, Math.min(100, ((cur - startMin) / totalMin) * 100));
-    return `<div style="display:flex;align-items:center;gap:8px">
-              <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:${color};width:36px;flex-shrink:0;text-align:right">${c.callTime || '--'}</span>
-              <div style="flex:1;height:24px;border-radius:6px;background:var(--surface2);position:relative;overflow:hidden">
-                <div style="position:absolute;left:${pct}%;top:0;height:100%;display:flex;align-items:center;transform:translateX(-50%)">
-                  <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;border:2px solid var(--bg);box-shadow:0 0 8px ${color}80"></div>
+    function performerCard(p) {
+        return `
+        <div class="bg-surface border border-border rounded-2xl p-4 mb-3 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-accent opacity-5 rounded-full -mr-8 -mt-8"></div>
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-accent/10 border-2 border-accent text-accent flex items-center justify-center font-display font-black">
+                        ${p.name ? p.name.charAt(0) : 'P'}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">${p.name || '未設定'}</h3>
+                        <p class="text-[10px] text-muted">${p.role || '出演者'}</p>
+                    </div>
                 </div>
-                <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:linear-gradient(90deg, ${color}11, ${color}22);border-right:2px solid ${color}44"></div>
-              </div>
-              <span style="font-size:10px;color:var(--text);font-family:var(--font-display);font-weight:600;width:70px;flex-shrink:0;truncate;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</span>
-            </div>`;
-  }).join('')}
+                <div class="flex gap-2">
+                    <button class="perf-edit-btn text-muted hover:text-text" data-id="${p.id}"><span class="material-symbols-outlined text-lg">edit</span></button>
+                    <button class="perf-del-btn text-muted hover:text-accent" data-id="${p.id}"><span class="material-symbols-outlined text-lg">delete</span></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-bg rounded-lg p-2 text-center">
+                    <p class="text-[8px] text-muted uppercase font-bold mb-0.5">入り</p>
+                    <p class="font-display font-black text-xs text-text">${p.arrivalTime || '--:--'}</p>
+                </div>
+                <div class="bg-bg rounded-lg p-2 text-center">
+                    <p class="text-[8px] text-muted uppercase font-bold mb-0.5">メイク</p>
+                    <p class="font-display font-black text-xs text-accent">${p.makeupTime || '--:--'}</p>
+                </div>
+                <div class="bg-bg rounded-lg p-2 text-center">
+                    <p class="text-[8px] text-muted uppercase font-bold mb-0.5">完了</p>
+                    <p class="font-display font-black text-xs text-success">${p.readyTime || '--:--'}</p>
+                </div>
+            </div>
+            ${p.notes ? `<p class="mt-2 text-[10px] text-muted bg-surface2 p-2 rounded-lg">※ ${p.notes}</p>` : ''}
+        </div>`;
+    }
+
+    function crewCard(c) {
+        const color = deptColors[c.dept] || '#7A7670';
+        return `
+        <div class="bg-surface border border-border rounded-xl p-3 mb-2 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-display font-bold text-xs" style="background:${color}22; color:${color}; border:1px solid ${color}44">
+                    ${c.name ? c.name.charAt(0) : '?'}
+                </div>
+                <div>
+                    <p class="font-bold text-xs">${c.name}</p>
+                    <p class="text-[9px] text-muted">${c.dept} / ${c.role}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p class="text-[8px] text-muted uppercase">集合</p>
+                    <p class="font-display font-bold text-sm text-text">${c.callTime || '09:00'}</p>
+                </div>
+                <button class="crew-edit-btn text-muted" data-id="${c.id}"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+            </div>
+        </div>`;
+    }
+
+    return `
+<div id="screen-crew" class="screen flex-col h-full bg-bg">
+    <header class="safe-top shrink-0 flex items-center justify-between px-5 py-4 border-b border-border">
+        <div>
+            <h1 class="font-display font-bold text-2xl mb-1 text-text">スタッフ・出演者</h1>
+            <p class="text-muted text-[11px] font-display uppercase tracking-wider">${crew.length + performers.length} PEOPLE ON SITE</p>
         </div>
-      </div>` : '';
-
-  const mainLoc = Store.locations.find(l => l.status === 'current');
-
-  return `
-<div id="screen-crew" class="screen fade-enter" style="flex-direction:column">
-  <header class="safe-top" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px">
-    <div>
-      <h1 style="font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em">クルー</h1>
-      <p style="color:var(--primary);font-size:10px;font-family:var(--font-display);font-weight:700">${crew.length} 名登録済み</p>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button id="crew-cs-btn" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:var(--font-display);font-weight:700;font-size:11px;cursor:pointer">
-        <span class="material-symbols-outlined" style="font-size:14px">description</span>CS
-      </button>
-      <button id="crew-add-btn" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--primary);border:none;cursor:pointer">
-        <span class="material-symbols-outlined" style="font-size:20px;color:var(--bg)">person_add</span>
-      </button>
-    </div>
-  </header>
-
-  <div class="hide-scrollbar" style="flex:1;overflow-y:auto;padding-bottom:90px">
-    <!-- Today Info -->
-    <div class="scale-in" style="margin:16px;background:linear-gradient(145deg, var(--surface2), var(--surface));border:1px solid var(--border2);border-radius:16px;padding:16px">
-      <p style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">本日の撮影情報</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div style="background:var(--bg);border-radius:10px;padding:10px">
-          <p style="font-size:9px;color:var(--muted);margin-bottom:4px">撮影日</p>
-          <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${Store.project.shootDate || '未設定'}</p>
-          <p style="font-size:10px;color:var(--primary);margin-top:2px">${Store.project.shootDay || ''}</p>
-        </div>
-        <div style="background:var(--bg);border-radius:10px;padding:10px">
-          <p style="font-size:9px;color:var(--muted);margin-bottom:4px">メインロケ</p>
-          <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mainLoc?.name || '未設定'}</p>
-          <p style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mainLoc?.address || '住所未設定'}</p>
-        </div>
-        <div style="background:var(--bg);border-radius:10px;padding:10px">
-          <p style="font-size:9px;color:var(--muted);margin-bottom:4px">撮影開始</p>
-          <p style="font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--primary)">${Store.project.startTime || '--:--'}</p>
-        </div>
-        <div style="background:var(--bg);border-radius:10px;padding:10px">
-          <p style="font-size:9px;color:var(--muted);margin-bottom:4px">終了予定</p>
-          <p style="font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--text)">${Store.project.wrapTime || '--:--'}</p>
-        </div>
-      </div>
-      ${mainLoc?.parking ? `<div style="background:var(--bg);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text)"><span style="color:var(--muted);font-size:10px">🚗 駐車場：</span>${mainLoc.parking}</div>` : ''}
-    </div>
-
-    <!-- Timeline Visualization -->
-    ${timelineCrew.length > 0 ? `
-    <div class="scale-in" style="margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden">
-      ${timelineHtml}
-    </div>` : ''}
-
-    <!-- Crew by Dept -->
-    ${depts.length > 0 ? depts.map(dept => `
-    <div style="margin:0 16px 16px">
-      <p style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.12em;color:${deptColors[dept] || 'var(--muted)'};margin-bottom:8px;padding-left:4px">${dept.toUpperCase()}</p>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden" id="crew-dept-${dept.replace(/\s/g, '_')}">
-        ${crew.filter(c => c.dept === dept).map((c, i) => crewCard(c)).join('')}
-      </div>
-    </div>`).join('') : `
-    <div style="margin:32px 16px;text-align:center">
-      <span class="material-symbols-outlined" style="font-size:48px;color:var(--border2);display:block;margin-bottom:12px">group_add</span>
-      <p style="font-family:var(--font-display);font-weight:700;color:var(--muted);margin-bottom:4px">スタッフ未登録</p>
-      <p style="font-size:12px;color:var(--border2)">「＋」ボタンから追加してください</p>
-    </div>`}
-
-    <!-- Emergency Contacts -->
-    <div style="margin:0 16px 16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <p style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--muted);padding-left:4px">緊急連絡先</p>
-        <button id="em-add-btn" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:11px;display:flex;align-items:center;gap:4px">
-          <span class="material-symbols-outlined" style="font-size:14px">add</span>追加
+        <button id="crew-back" class="w-10 h-10 flex items-center justify-center rounded-xl border border-border text-muted">
+            <span class="material-symbols-outlined">arrow_back</span>
         </button>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 16px">
-        ${Store.emergency.map((e, i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);${i === Store.emergency.length - 1 ? 'border-bottom:none' : ''}">
-          <span style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text)">${e.label}</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <a href="tel:${e.number}" style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--primary);display:flex;align-items:center;gap:4px;text-decoration:none">
-              <span class="material-symbols-outlined" style="font-size:14px">phone</span>${e.number}
-            </a>
-            ${i > 1 ? `<button class="em-del-btn" data-em-idx="${i}" style="background:none;border:none;cursor:pointer;color:var(--muted)"><span class="material-symbols-outlined" style="font-size:14px">delete</span></button>` : ''}
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>
-  </div>
+    </header>
 
-  <!-- Add/Edit Crew Modal -->
-  <div id="crew-modal" class="modal-overlay">
-    <div class="modal-sheet">
-      <div class="modal-drag"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 id="crew-modal-title" style="margin-bottom:0">スタッフを追加</h3>
-        <button id="crew-modal-close" style="background:none;border:none;cursor:pointer;color:var(--muted)"><span class="material-symbols-outlined">close</span></button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <input type="hidden" id="crew-edit-id"/>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><label class="field-label">名前 *</label><input id="crew-name" class="field-input" type="text" placeholder="山田 花子"/></div>
-          <div><label class="field-label">役職</label><input id="crew-role" class="field-input" type="text" placeholder="2nd AC"/></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <label class="field-label">部署</label>
-            <select id="crew-dept" class="field-input">
-              <option>Direction</option><option>Camera</option><option>Electric</option>
-              <option>Audio</option><option>Art</option><option>HMU</option>
-              <option>Cast</option><option>Production</option><option>その他</option>
-            </select>
-          </div>
-          <div><label class="field-label">集合時間</label><input id="crew-calltime" class="field-input" type="time" value="09:00"/></div>
-        </div>
-        <div><label class="field-label">電話番号</label><input id="crew-phone" class="field-input" type="tel" placeholder="090-0000-0000"/></div>
-        <button id="crew-save-btn" class="btn-primary">保存する</button>
-        <button id="crew-delete-btn" style="display:none;width:100%;background:none;border:1.5px solid var(--accent);border-radius:12px;color:var(--accent);font-family:var(--font-display);font-weight:700;font-size:13px;padding:12px;cursor:pointer">このスタッフを削除</button>
-      </div>
-    </div>
-  </div>
+    <div class="flex-1 overflow-y-auto px-5 pt-4 pb-24">
+        
+        <!-- CAST SECTION -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <p class="section-header !mt-0 !mb-0">Performers <span class="text-accent">•</span> 出演者</p>
+                <button id="perf-add-btn" class="flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-bold text-[10px]">
+                    <span class="material-symbols-outlined" style="font-size:14px">person_add</span> 追加
+                </button>
+            </div>
+            ${performers.length > 0 ? performers.map(performerCard).join('') : '<p class="text-center py-8 text-xs text-muted border border-dashed border-border rounded-2xl">出演者の登録はありません</p>'}
+        </section>
 
-  <!-- Emergency Add Modal -->
-  <div id="em-modal" class="modal-overlay">
-    <div class="modal-sheet">
-      <div class="modal-drag"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 style="margin-bottom:0">緊急連絡先を追加</h3>
-        <button id="em-modal-close" style="background:none;border:none;cursor:pointer;color:var(--muted)"><span class="material-symbols-outlined">close</span></button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div><label class="field-label">名称</label><input id="em-label" class="field-input" type="text" placeholder="病院、担当者名など"/></div>
-        <div><label class="field-label">電話番号</label><input id="em-number" class="field-input" type="tel" placeholder="03-0000-0000"/></div>
-        <button id="em-save-btn" class="btn-primary">追加する</button>
-      </div>
+        <!-- STAFF SECTION -->
+        <section>
+            <div class="flex justify-between items-center mb-4">
+                <p class="section-header !mt-0 !mb-0">Crew <span class="text-primary">•</span> スタッフ</p>
+                <button id="crew-add-btn" class="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-[10px]">
+                    <span class="material-symbols-outlined" style="font-size:14px">group_add</span> 追加
+                </button>
+            </div>
+            ${crew.length > 0 ? crew.map(crewCard).join('') : '<p class="text-center py-8 text-xs text-muted border border-dashed border-border rounded-2xl">スタッフの登録はありません</p>'}
+        </section>
+
     </div>
-  </div>
+
+    <!-- Modals -->
+    <div id="perf-modal" class="absolute inset-0 bg-bg/90 backdrop-blur-sm z-30 hidden flex-col justify-end">
+        <div class="bg-surface rounded-t-3xl p-6 border-t border-border slide-up">
+            <h3 id="perf-modal-title" class="font-display font-bold text-lg mb-5">出演者を追加</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="perf-id"/>
+                <div><label class="field-label">氏名 / 役名</label><input id="perf-name" class="field-input" type="text" placeholder="役名 または 氏名"/></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="field-label">役職 / カテゴリ</label><input id="perf-role" class="field-input" type="text" placeholder="Main Cast"/></div>
+                    <div><label class="field-label">電話番号</label><input id="perf-phone" class="field-input" type="tel" placeholder="090-..."/></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="field-label text-[10px]">現場入り</label><input id="perf-arrival" class="field-input text-sm" type="time" value="09:00"/></div>
+                    <div><label class="field-label text-[10px]">メイク開始</label><input id="perf-makeup" class="field-input text-sm" type="time" value="09:30"/></div>
+                    <div><label class="field-label text-[10px]">支度完了</label><input id="perf-ready" class="field-input text-sm" type="time" value="10:30"/></div>
+                </div>
+                <div><label class="field-label">備考（衣装・アレルギー等）</label><input id="perf-notes" class="field-input" type="text" placeholder="衣装A、お弁当無し等"/></div>
+                <button id="perf-save-btn" class="w-full bg-accent text-white font-bold py-4 rounded-2xl mt-4 shadow-lg shadow-accent/20">保存する</button>
+                <button id="perf-modal-close" class="w-full text-muted py-2 text-sm mt-2">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crew Modal (Simple) -->
+    <div id="crew-modal" class="absolute inset-0 bg-bg/90 backdrop-blur-sm z-30 hidden flex-col justify-end">
+        <div class="bg-surface rounded-t-3xl p-6 border-t border-border slide-up">
+            <h3 id="crew-modal-title" class="font-display font-bold text-lg mb-5">スタッフを追加</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="crew-id"/>
+                <div><label class="field-label">氏名</label><input id="crew-name" class="field-input" type="text" placeholder="スタッフ名"/></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="field-label">部署</label>
+                        <select id="crew-dept" class="field-input">
+                            <option>Direction</option><option>Camera</option><option>Electric</option>
+                            <option>Audio</option><option>Art</option><option>HMU</option>
+                            <option>Cast</option><option>Production</option><option>その他</option>
+                        </select>
+                    </div>
+                    <div><label class="field-label">役職</label><input id="crew-role" class="field-input" type="text" placeholder="Role"/></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="field-label">集合時間</label><input id="crew-call" class="field-input" type="time" value="09:00"/></div>
+                    <div><label class="field-label">電話番号</label><input id="crew-phone" class="field-input" type="tel" placeholder="090-..."/></div>
+                </div>
+                <button id="crew-save-btn" class="w-full bg-primary text-bg font-bold py-4 rounded-2xl mt-4 shadow-lg shadow-primary/20">保存する</button>
+                <button id="crew-modal-close" class="w-full text-muted py-2 text-sm mt-2">キャンセル</button>
+            </div>
+        </div>
+    </div>
 </div>`;
 };
 
 window.initCrew = function () {
-  document.getElementById('crew-cs-btn')?.addEventListener('click', () => window.navigateTo('callsheet'));
-  document.getElementById('crew-add-btn')?.addEventListener('click', () => openCrewModal(null));
+    const backBtn = document.getElementById('crew-back');
+    backBtn?.addEventListener('click', () => window.navigateTo('manage'));
 
-  // delete crew
-  document.querySelectorAll('.crew-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm('このスタッフを削除しますか？')) {
-        Store.deleteCrew(btn.dataset.crewDel);
-        window.showToast('スタッフを削除しました');
+    // --- CAST LOGIC ---
+    const perfModal = document.getElementById('perf-modal');
+    document.getElementById('perf-add-btn')?.addEventListener('click', () => {
+        resetPerfFields();
+        document.getElementById('perf-modal-title').textContent = '出演者を追加';
+        perfModal?.classList.remove('hidden');
+    });
+    document.getElementById('perf-modal-close')?.addEventListener('click', () => perfModal?.classList.add('hidden'));
+
+    document.querySelectorAll('.perf-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const p = Store.performers.find(x => x.id === id);
+            if (p) {
+                document.getElementById('perf-id').value = p.id;
+                document.getElementById('perf-name').value = p.name || '';
+                document.getElementById('perf-role').value = p.role || '';
+                document.getElementById('perf-phone').value = p.phone || '';
+                document.getElementById('perf-arrival').value = p.arrivalTime || '09:00';
+                document.getElementById('perf-makeup').value = p.makeupTime || '09:30';
+                document.getElementById('perf-ready').value = p.readyTime || '10:30';
+                document.getElementById('perf-notes').value = p.notes || '';
+                document.getElementById('perf-modal-title').textContent = '出演者を編集';
+                perfModal?.classList.remove('hidden');
+            }
+        });
+    });
+
+    document.querySelectorAll('.perf-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (confirm('この出演者を削除しますか？')) {
+                Store.deletePerformer(btn.dataset.id);
+                window.navigateTo('crew');
+            }
+        });
+    });
+
+    document.getElementById('perf-save-btn')?.addEventListener('click', () => {
+        const id = document.getElementById('perf-id').value;
+        const data = {
+            name: document.getElementById('perf-name').value.trim(),
+            role: document.getElementById('perf-role').value.trim(),
+            phone: document.getElementById('perf-phone').value.trim(),
+            arrivalTime: document.getElementById('perf-arrival').value,
+            makeupTime: document.getElementById('perf-makeup').value,
+            readyTime: document.getElementById('perf-ready').value,
+            notes: document.getElementById('perf-notes').value.trim()
+        };
+        if (!data.name) return window.showToast('名前を入力してください', 'error');
+        if (id) Store.updatePerformer(id, data);
+        else Store.addPerformer(data);
+        perfModal?.classList.add('hidden');
         window.navigateTo('crew');
-      }
     });
-  });
 
-  // edit crew
-  document.querySelectorAll('.crew-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const c = Store.crew.find(x => x.id === btn.dataset.crewEdit);
-      if (c) openCrewModal(c);
-    });
-  });
-
-  // emergency
-  document.getElementById('em-add-btn')?.addEventListener('click', () => {
-    document.getElementById('em-label').value = '';
-    document.getElementById('em-number').value = '';
-    document.getElementById('em-modal')?.classList.add('show');
-  });
-  document.getElementById('em-modal-close')?.addEventListener('click', () => document.getElementById('em-modal')?.classList.remove('show'));
-  document.getElementById('em-save-btn')?.addEventListener('click', () => {
-    const label = document.getElementById('em-label')?.value.trim();
-    const number = document.getElementById('em-number')?.value.trim();
-    if (!label || !number) { window.showToast('名称と電話番号を入力してください', 'error'); return; }
-    Store.addEmergency({ label, number });
-    document.getElementById('em-modal')?.classList.remove('show');
-    window.navigateTo('crew');
-  });
-  document.getElementById('em-modal')?.addEventListener('click', e => { if (e.target.id === 'em-modal') e.target.classList.remove('show'); });
-
-  document.querySelectorAll('.em-del-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      Store.deleteEmergency(parseInt(btn.dataset.emIdx));
-      window.navigateTo('crew');
-    });
-  });
-
-  // modal open/close
-  const crewModal = document.getElementById('crew-modal');
-  document.getElementById('crew-modal-close')?.addEventListener('click', () => crewModal?.classList.remove('show'));
-  crewModal?.addEventListener('click', e => { if (e.target === crewModal) crewModal.classList.remove('show'); });
-
-  // save
-  document.getElementById('crew-save-btn')?.addEventListener('click', () => {
-    const editId = document.getElementById('crew-edit-id')?.value;
-    const data = {
-      name: document.getElementById('crew-name')?.value.trim() || '',
-      role: document.getElementById('crew-role')?.value.trim() || '',
-      dept: document.getElementById('crew-dept')?.value || 'その他',
-      callTime: document.getElementById('crew-calltime')?.value || '09:00',
-      phone: document.getElementById('crew-phone')?.value.trim() || '',
-    };
-    if (!data.name) { window.showToast('名前を入力してください', 'error'); return; }
-    if (editId) {
-      Store.updateCrew(editId, data);
-      window.showToast('✓ スタッフを更新しました', 'success');
-    } else {
-      Store.addCrew(data);
-      window.showToast('✓ スタッフを追加しました', 'success');
+    function resetPerfFields() {
+        document.getElementById('perf-id').value = '';
+        document.getElementById('perf-name').value = '';
+        document.getElementById('perf-role').value = '';
+        document.getElementById('perf-phone').value = '';
+        document.getElementById('perf-arrival').value = '09:00';
+        document.getElementById('perf-makeup').value = '09:30';
+        document.getElementById('perf-ready').value = '10:30';
+        document.getElementById('perf-notes').value = '';
     }
-    crewModal?.classList.remove('show');
-    window.navigateTo('crew');
-  });
 
-  // delete from modal
-  document.getElementById('crew-delete-btn')?.addEventListener('click', () => {
-    const editId = document.getElementById('crew-edit-id')?.value;
-    if (editId && confirm('このスタッフを削除しますか？')) {
-      Store.deleteCrew(editId);
-      crewModal?.classList.remove('show');
-      window.navigateTo('crew');
+    // --- CREW LOGIC ---
+    const crewModal = document.getElementById('crew-modal');
+    document.getElementById('crew-add-btn')?.addEventListener('click', () => {
+        resetCrewFields();
+        document.getElementById('crew-modal-title').textContent = 'スタッフを追加';
+        crewModal?.classList.remove('hidden');
+    });
+    document.getElementById('crew-modal-close')?.addEventListener('click', () => crewModal?.classList.add('hidden'));
+
+    document.querySelectorAll('.crew-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const c = Store.crew.find(x => x.id === id);
+            if (c) {
+                document.getElementById('crew-id').value = c.id;
+                document.getElementById('crew-name').value = c.name || '';
+                document.getElementById('crew-dept').value = c.dept || 'Production';
+                document.getElementById('crew-role').value = c.role || '';
+                document.getElementById('crew-call').value = c.callTime || '09:00';
+                document.getElementById('crew-phone').value = c.phone || '';
+                document.getElementById('crew-modal-title').textContent = 'スタッフを編集';
+                crewModal?.classList.remove('hidden');
+            }
+        });
+    });
+
+    document.getElementById('crew-save-btn')?.addEventListener('click', () => {
+        const id = document.getElementById('crew-id').value;
+        const data = {
+            name: document.getElementById('crew-name').value.trim(),
+            dept: document.getElementById('crew-dept').value,
+            role: document.getElementById('crew-role').value.trim(),
+            callTime: document.getElementById('crew-call').value,
+            phone: document.getElementById('crew-phone').value.trim()
+        };
+        if (!data.name) return window.showToast('名前を入力してください', 'error');
+        if (id) Store.updateCrew(id, data);
+        else Store.addCrew(data);
+        crewModal?.classList.add('hidden');
+        window.navigateTo('crew');
+    });
+
+    function resetCrewFields() {
+        document.getElementById('crew-id').value = '';
+        document.getElementById('crew-name').value = '';
+        document.getElementById('crew-dept').value = 'Production';
+        document.getElementById('crew-role').value = '';
+        document.getElementById('crew-call').value = '09:00';
+        document.getElementById('crew-phone').value = '';
     }
-  });
 };
-
-function openCrewModal(c) {
-  const modal = document.getElementById('crew-modal');
-  document.getElementById('crew-modal-title').textContent = c ? 'スタッフを編集' : 'スタッフを追加';
-  document.getElementById('crew-edit-id').value = c?.id || '';
-  document.getElementById('crew-name').value = c?.name || '';
-  document.getElementById('crew-role').value = c?.role || '';
-  document.getElementById('crew-calltime').value = c?.callTime || '09:00';
-  document.getElementById('crew-phone').value = c?.phone || '';
-  const deptEl = document.getElementById('crew-dept');
-  if (deptEl && c?.dept) deptEl.value = c.dept;
-  document.getElementById('crew-delete-btn').style.display = c ? 'block' : 'none';
-  modal?.classList.add('show');
-}

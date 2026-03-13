@@ -1,292 +1,175 @@
 /* =============================================================
-   Timeline Screen V4 — スナップライン対応・アニメーション・完了トグル
+   Professional Schedule (香盤表) V8 — Field OS Edition
    ============================================================= */
 window.renderTimeline = function () {
-  const shots = Store.orderedShots;
-  const p = Store.project;
-  const stats = Store.getStats();
-  const delay = Utils.calcDelay(shots, p.startTime);
-  const refLoc = Store.locations[0] || { lat: 35.6812, lng: 139.7671 };
-  const sunset = Store.sunsetOverride || Utils.calcSunset(refLoc.lat, refLoc.lng, p.shootDate);
-  const sunsetMin = Utils.timeToMin(sunset);
-  const nowM = Utils.nowMin();
-  const remMin = sunsetMin - nowM;
-  const sunsetAlert = remMin < 90;
+    const shots = Store.orderedShots;
+    const p = Store.project;
+    const stats = Store.getStats();
+    const delay = Store.liveState.delayMinutes || 0;
+    
+    const nowM = Utils.nowMin();
+    const delayColor = delay > 0 ? 'var(--accent)' : delay < 0 ? 'var(--success)' : 'var(--muted)';
 
-  const delayStr = delay === 0 ? '定刻' : Utils.fmtDiff(delay);
-  const delayColor = delay > 0 ? 'var(--accent)' : delay < 0 ? 'var(--success)' : 'var(--muted)';
+    function shotRow(shot, idx) {
+        const isCompleted = shot.status === 'completed';
+        const isShooting = shot.status === 'shooting';
+        const castStr = (shot.cast || []).join(', ') || '—';
+        
+        let statusClass = 'border-border opacity-70';
+        if (isShooting) statusClass = 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-lg';
+        if (isCompleted) statusClass = 'border-border opacity-30';
 
-  const sunsetStr = remMin < 0 ? '日没済み'
-    : remMin < 60 ? `残り${remMin}分`
-      : `残り${Math.floor(remMin / 60)}時間${remMin % 60}分`;
+        return `
+        <div class="flex gap-3 mb-4 last:mb-0 draggable-shot" draggable="true" data-id="${shot.id}">
+            <!-- Time Column -->
+            <div class="w-14 shrink-0 flex flex-col items-center pt-1">
+                <span class="font-display font-black text-xs ${isShooting ? 'text-primary' : isCompleted ? 'text-muted' : 'text-text'}">
+                    ${shot.startTime}
+                </span>
+                <div class="w-px flex-1 bg-border my-2 relative">
+                    ${isShooting ? '<div class="absolute inset-0 bg-primary animate-pulse"></div>' : ''}
+                </div>
+                <div class="text-[8px] font-bold text-muted uppercase bg-surface px-1.5 py-0.5 rounded border border-border">
+                    ${shot.duration}分
+                </div>
+            </div>
 
-  function shotCard(shot, idx) {
-    const isCompleted = shot.status === 'completed';
-    const isShooting = shot.status === 'shooting';
-    const endMin = Utils.timeToMin(shot.startTime) + (shot.duration || 0);
-    const isAfterSun = endMin > sunsetMin && !isCompleted;
-    const castStr = (shot.cast || []).join(', ') || '—';
+            <!-- Card Column -->
+            <div class="flex-1 bg-surface border rounded-2xl p-4 transition-all ${statusClass}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-lg bg-bg border border-border flex items-center justify-center font-display font-black text-xs text-muted">
+                            ${shot.number}
+                        </span>
+                        <div>
+                            <h3 class="font-bold text-sm ${isCompleted ? 'line-through' : ''}">${shot.title}</h3>
+                            <p class="text-[9px] text-muted flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]">location_on</span>${shot.location}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="tl-edit text-muted hover:text-primary" data-id="${shot.id}">
+                            <span class="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                    </div>
+                </div>
 
-    let border = '1px solid var(--border)';
-    let bg = 'var(--surface)';
-    let opacity = '';
-    if (isShooting) { border = '2px solid var(--primary)'; bg = 'var(--primary-t)'; }
-    if (isCompleted) { opacity = 'opacity:.45'; }
-    if (isAfterSun && !isCompleted) border = '1px solid var(--accent)';
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="text-[10px] bg-bg/50 px-2 py-1 rounded-md border border-border/50 text-muted">
+                        <span class="material-symbols-outlined text-[11px] align-middle mr-0.5">groups</span>${castStr}
+                    </span>
+                    ${shot.lens ? `
+                    <span class="text-[10px] bg-bg/50 px-2 py-1 rounded-md border border-border/50 text-muted">
+                        <span class="material-symbols-outlined text-[11px] align-middle mr-0.5">videocam</span>${shot.lens}
+                    </span>` : ''}
+                </div>
+
+                ${shot.notes ? `
+                <div class="mt-3 p-2 bg-primary/5 border border-primary/10 rounded-lg">
+                    <p class="text-[9px] text-primary leading-tight font-body">※ ${shot.notes}</p>
+                </div>` : ''}
+
+                ${isCompleted ? `
+                <div class="mt-2 flex items-center gap-1 text-[9px] text-success font-bold">
+                    <span class="material-symbols-outlined text-[11px]">check_circle</span> 撮影完了 (${shot.completedAt})
+                </div>` : ''}
+            </div>
+        </div>`;
+    }
 
     return `
-      <div class="flex gap-3 items-start shot-card-tl slide-up-enter" style="animation-delay:${idx * 0.04}s" draggable="${!isCompleted}" data-shot-id="${shot.id}" data-shot-status="${shot.status}">
-        <div style="width:52px;text-align:right;flex-shrink:0;padding-top:4px">
-          <span style="font-family:var(--font-display);font-size:14px;font-weight:800;color:${isAfterSun ? 'var(--accent)' : isShooting ? 'var(--primary)' : 'var(--text)'};transition:color .3s;letter-spacing:-.02em;display:block">${shot.startTime}</span>
-          <button class="tl-duration-edit-btn no-print" data-shot-id="${shot.id}" title="所要時間を変更" style="margin-top:6px;display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;background:var(--surface2);color:var(--primary);border:1.5px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:11px;font-weight:700;font-family:var(--font-display);cursor:pointer;width:100%;transition:border-color .2s">
-            <span class="material-symbols-outlined" style="font-size:12px">timer</span>${shot.duration}
-          </button>
-        </div>
-        <div class="shot-card-inner" style="border:${border};background:${bg};${opacity};border-radius:14px;padding:14px;flex:1;min-width:0;position:relative;transition:all .3s cubic-bezier(0.2,0.8,0.2,1)">
-          ${isAfterSun ? '<span class="material-symbols-outlined" style="position:absolute;top:10px;right:10px;color:var(--accent);font-size:16px">wb_twilight</span>' : ''}
-          <div style="display:flex;align-items:flex-start;gap:10px">
-            ${!isCompleted ? '<span class="material-symbols-outlined drag-handle" style="color:var(--muted);font-size:18px;flex-shrink:0;margin-top:2px;cursor:grab">drag_indicator</span>' : ''}
-            <button class="complete-btn ${isCompleted ? 'done' : ''} no-print" data-complete-id="${shot.id}" title="${isCompleted ? 'クリックで元に戻す' : '完了にする'}">
-              <span class="material-symbols-outlined" style="font-size:16px">${isCompleted ? 'check' : 'radio_button_unchecked'}</span>
-            </button>
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-                <span class="badge badge-${isShooting ? 'primary' : isCompleted ? 'success' : 'muted'} transition-colors">${shot.number}</span>
-                <span class="status-pill status-${shot.status} transition-colors">${isShooting ? '撮影中' : isCompleted ? '完了' : '未撮影'}</span>
-                ${isShooting ? '<span style="font-family:var(--font-display);font-size:10px;font-weight:900;color:var(--primary)" class="animate-pulse">● REC</span>' : ''}
-              </div>
-              <p style="font-family:var(--font-display);font-weight:700;font-size:14px;${isCompleted ? 'text-decoration:line-through;color:var(--muted)' : ''};line-height:1.2;transition:color .3s">${shot.title}</p>
-              <p style="font-size:11px;color:var(--muted);margin-top:4px">${shot.lens ? shot.lens + ' /' : ''} ${castStr} / ${shot.location}</p>
-              ${shot.notes ? `<p style="font-size:10px;color:var(--primary);margin-top:3px">※ ${shot.notes}</p>` : ''}
-              ${isCompleted ? `<p style="font-size:10px;color:var(--success);margin-top:3px;display:flex;align-items:center;gap:3px"><span class="material-symbols-outlined" style="font-size:12px">verified</span>完了 ${shot.completedAt} · タップで取り消し</p>` : ''}
-              <div style="display:flex;gap:8px;margin-top:6px">
-                ${shot.scene ? `<span style="font-size:10px;color:var(--muted)">Scene ${shot.scene}</span>` : ''}
-              </div>
+<div id="screen-timeline" class="screen flex-col h-full bg-bg">
+    <header class="safe-top shrink-0 px-5 py-4 border-b border-border bg-surface/50 backdrop-blur-md sticky top-0 z-10">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="font-display font-black text-2xl text-text leading-tight">香盤表</h1>
+                <p class="text-muted text-[11px] font-display uppercase tracking-widest">${p.shootDay || 'DAY 1'} · ${p.shootDate}</p>
             </div>
-            <button class="tl-shot-edit-btn no-print" data-shot-id="${shot.id}" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--muted);flex-shrink:0;transition:all .2s">
-               <span class="material-symbols-outlined" style="font-size:14px">edit</span>
-            </button>
-          </div>
+            <div class="flex gap-2">
+                <button id="tl-callsheet" class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface border border-border text-muted transition-transform active:scale-95">
+                    <span class="material-symbols-outlined">description</span>
+                </button>
+                <button id="tl-add-shot" class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-bg transition-transform active:scale-95">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </div>
         </div>
-      </div>`;
-  }
-
-  return `
-<div id="screen-timeline" class="screen fade-enter" style="flex-direction:column;background:var(--bg)">
-  <!-- Project banner -->
-  <div class="safe-top" style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:2">
-    <div style="min-width:0;flex:1">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-        <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">${p.shootDay} · ${p.shootDate}</p>
-        <button id="tl-start-time-edit" class="no-print" style="display:flex;align-items:center;gap:3px;background:var(--primary-t);color:var(--primary);border:1px solid var(--primary);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;font-family:var(--font-display);cursor:pointer;transition:all .2s">
-          <span class="material-symbols-outlined" style="font-size:11px">schedule</span>開始 ${p.startTime}
-        </button>
-      </div>
-      <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</p>
-    </div>
-    <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
-      <button onclick="document.getElementById('screen-timeline').classList.replace('fade-enter','fade-exit');setTimeout(()=>window.navigateTo('projects'),250)" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--muted);transition:all .2s">
-        <span class="material-symbols-outlined" style="font-size:16px">folder</span>
-      </button>
-      <button onclick="window._prevScreen='timeline'; document.getElementById('screen-timeline').classList.replace('fade-enter','fade-exit');setTimeout(()=>window.navigateTo('project-edit'),250)" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--muted);transition:all .2s">
-        <span class="material-symbols-outlined" style="font-size:16px">edit</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <header style="flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);z-index:2">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
-      <div>
-        <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">現在時刻</p>
-        <p id="tl-clock" style="font-family:var(--font-display);font-weight:900;font-size:40px;color:var(--primary);line-height:1;letter-spacing:-.02em">${Utils.nowStr()}</p>
-      </div>
-      <div style="text-align:right">
-        <div style="display:flex;gap:8px">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;transition:all .3s">
-            <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted)">進行</p>
-            <p style="font-family:var(--font-display);font-weight:700;font-size:15px;color:${delayColor}">${delayStr}${delay !== 0 ? (delay > 0 ? ' 押し' : ' 巻き') : ''}</p>
-          </div>
-          <button id="tl-goto-sim" style="background:${sunsetAlert ? 'var(--accent)' : 'var(--surface)'};border:1px solid ${sunsetAlert ? 'var(--accent)' : 'var(--border)'};border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left;transition:all .3s">
-            <p style="font-family:var(--font-display);font-size:9px;font-weight:700;text-transform:uppercase;color:${sunsetAlert ? 'rgba(255,255,255,.8)' : 'var(--muted)'};margin-bottom:1px">日没</p>
-            <p style="font-family:var(--font-display);font-weight:700;font-size:13px;color:${sunsetAlert ? 'white' : 'var(--text)'}">${sunsetStr}</p>
-          </button>
+        
+        <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="bg-bg rounded-2xl p-3 border border-border">
+                <p class="text-[8px] text-muted uppercase font-black tracking-widest mb-1">CURRENT TIME</p>
+                <p id="tl-clock" class="text-lg font-display font-black text-primary">${Utils.nowStr()}</p>
+            </div>
+            <div class="bg-bg rounded-2xl p-3 border border-border">
+                <p class="text-[8px] text-muted uppercase font-black tracking-widest mb-1">STATUS</p>
+                <p class="text-lg font-display font-black" style="color:${delayColor}">
+                    ${delay === 0 ? 'ON TIME' : (delay > 0 ? '+' : '') + delay + 'm'}
+                </p>
+            </div>
         </div>
-      </div>
-    </div>
-    <!-- Progress -->
-    <div style="padding:0 16px 12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">撮影進捗</span>
-        <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--primary)">${stats.done}/${stats.total}カット (${stats.pct}%)</span>
-      </div>
-      <div class="prog-bar">
-        <div class="prog-bar-fill" style="width:${stats.pct}%;transition:width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)"></div>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Timeline Body -->
-  <main id="tl-body" class="timeline-grid hide-scrollbar" style="flex:1;overflow-y:auto;padding:16px;gap:12px;position:relative">
-    ${shots.map((s, i) => shotCard(s, i)).join('')}
-    <!-- Sunset marker -->
-    <div class="slide-up-enter" style="display:flex;gap:12px;align-items:center;opacity:.7;animation-delay:${shots.length * 0.04}s">
-      <div style="width:44px;text-align:right;flex-shrink:0">
-        <span style="font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--accent)">${sunset}</span>
-      </div>
-      <div style="flex:1;border:1.5px dashed var(--accent);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;color:var(--accent)">
-        <span class="material-symbols-outlined" style="font-size:18px">wb_twilight</span>
-        <span style="font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">日没 — Magic Hour</span>
-      </div>
+    <div class="flex-1 overflow-y-auto px-5 pt-6 pb-24" id="tl-list">
+        ${shots.length > 0 ? shots.map(shotRow).join('') : `
+        <div class="h-64 flex flex-col items-center justify-center text-center opacity-40">
+            <span class="material-symbols-outlined text-5xl mb-4">list_alt</span>
+            <p class="text-sm font-bold">カットが登録されていません</p>
+            <p class="text-[11px]">右上の＋からカットを追加してください</p>
+        </div>`}
     </div>
-  </main>
 </div>`;
 };
 
 window.initTimeline = function () {
-  const clockEl = document.getElementById('tl-clock');
-  let clockTimer;
-  if (clockEl) clockTimer = setInterval(() => { if (document.getElementById('tl-clock')) document.getElementById('tl-clock').textContent = Utils.nowStr(); else clearInterval(clockTimer); }, 10000);
+    const clockTimer = setInterval(() => {
+        const el = document.getElementById('tl-clock');
+        if (el) el.textContent = Utils.nowStr();
+        else clearInterval(clockTimer);
+    }, 10000);
 
-  document.getElementById('tl-goto-sim')?.addEventListener('click', () => {
-    document.getElementById('screen-timeline').classList.replace('fade-enter', 'fade-exit');
-    setTimeout(() => window.navigateTo('simulator'), 250);
-  });
-
-  // Edit Project Start Time
-  document.getElementById('tl-start-time-edit')?.addEventListener('click', () => {
-    const p = Store.project;
-    const newTime = prompt('撮影開始時間を入力してください (HH:MM)', p.startTime);
-    if (newTime && /^([01]\d|2[0-3]):?([0-5]\d)$/.test(newTime)) {
-      const formatted = newTime.replace(':', '').replace(/^(\d{2})(\d{2})$/, '$1:$2');
-      p.startTime = formatted;
-      Store.save();
-      window.navigateTo('timeline');
-    } else if (newTime !== null) {
-      window.showToast('正しい形式で入力してください (例: 08:00)', 'error');
-    }
-  });
-
-  // Edit Shot Duration inline
-  document.querySelectorAll('.tl-duration-edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const id = btn.dataset.shotId;
-      const shot = Store.shots.find(s => s.id === id);
-      if (!shot) return;
-      const newDur = prompt(`「${shot.title}」の所要時間を入力 (分)`, shot.duration);
-      if (newDur && !isNaN(parseInt(newDur, 10))) {
-        shot.duration = parseInt(newDur, 10);
-        Store.save();
-        window.navigateTo('timeline');
-      }
-    });
-  });
-
-  // Complete toggle
-  document.querySelectorAll('[data-complete-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.completeId;
-      const shot = Store.shots.find(s => s.id === id);
-      const msg = shot?.status === 'completed' ? '撮影完了を取り消しました' : '✓ 撮影完了を記録しました';
-      const type = shot?.status === 'completed' ? '' : 'success';
-      Store.completeShot(id);
-      window.showToast(msg, type);
-      // Fast re-render without exit animation
-      window.navigateTo('timeline');
-    });
-  });
-
-  // Cross-screen Edit action
-  document.querySelectorAll('.tl-shot-edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window._editShotTarget = btn.dataset.shotId;
-      window.navigateTo('shots');
-    });
-  });
-
-  // Drag reorder with snap line
-  const body = document.getElementById('tl-body');
-  if (!body) return;
-  let dragId = null;
-  let currentDropTarget = null;
-
-  function clearSnapLines() {
-    body.querySelectorAll('.shot-card-inner').forEach(el => {
-      el.classList.remove('drag-snap-line', 'drag-snap-line-bottom');
-    });
-  }
-
-  body.querySelectorAll('[draggable="true"]').forEach(card => {
-    const inner = card.querySelector('.shot-card-inner');
-    const handle = card.querySelector('.drag-handle');
-
-    // Allow dragging only from handle
-    card.addEventListener('dragstart', e => {
-      dragId = card.dataset.shotId;
-      setTimeout(() => { card.style.opacity = '.4'; card.style.transform = 'scale(0.98)'; }, 0);
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    card.addEventListener('dragend', window._onDragEnd = () => {
-      card.style.opacity = ''; card.style.transform = '';
-      clearSnapLines();
-      dragId = null;
+    document.getElementById('tl-callsheet')?.addEventListener('click', () => window.navigateTo('callsheet'));
+    document.getElementById('tl-add-shot')?.addEventListener('click', () => {
+        window._editShotTarget = null;
+        window.navigateTo('shots');
     });
 
-    card.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (!dragId || dragId === card.dataset.shotId) return;
-
-      clearSnapLines();
-      const rect = card.getBoundingClientRect();
-      const mid = rect.top + rect.height / 2;
-      const isBottom = e.clientY > mid;
-
-      if (isBottom) {
-        inner.classList.add('drag-snap-line-bottom');
-      } else {
-        inner.classList.add('drag-snap-line');
-      }
-      currentDropTarget = { id: card.dataset.shotId, isBottom };
+    document.querySelectorAll('.tl-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            window._editShotTarget = btn.dataset.id;
+            window.navigateTo('shots');
+        });
     });
 
-    card.addEventListener('dragleave', e => {
-      inner.classList.remove('drag-snap-line', 'drag-snap-line-bottom');
+    // Drag and Drop reordering
+    const container = document.getElementById('tl-list');
+    let draggedId = null;
+
+    document.querySelectorAll('.draggable-shot').forEach(el => {
+        el.addEventListener('dragstart', (e) => {
+            draggedId = el.dataset.id;
+            el.classList.add('opacity-40');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        el.addEventListener('dragend', () => {
+            el.classList.remove('opacity-40');
+            draggedId = null;
+        });
+        el.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingEl = document.querySelector(`[data-id="${draggedId}"]`);
+            if (draggingEl && el !== draggingEl) {
+                const rect = el.getBoundingClientRect();
+                const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                container.insertBefore(draggingEl, next ? el.nextSibling : el);
+            }
+        });
     });
 
-    card.addEventListener('drop', e => {
-      e.preventDefault();
-      clearSnapLines();
-      if (!dragId || !currentDropTarget) return;
-
-      const targetId = currentDropTarget.id;
-      if (dragId === targetId) return;
-
-      const order = [...Store.shotOrder];
-      const fromIdx = order.indexOf(dragId);
-      let toIdx = order.indexOf(targetId);
-
-      if (fromIdx < 0 || toIdx < 0) return;
-
-      // Remove from original
-      order.splice(fromIdx, 1);
-
-      // Re-calculate toIdx because array shifted
-      toIdx = order.indexOf(targetId);
-
-      // Insert at new position
-      if (currentDropTarget.isBottom) {
-        order.splice(toIdx + 1, 0, dragId);
-      } else {
-        order.splice(toIdx, 0, dragId);
-      }
-
-      Store.reorderShots(order);
-      window.showToast('順序を変更しました', 'success');
-      window.navigateTo('timeline');
+    container?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const newOrder = Array.from(container.querySelectorAll('.draggable-shot')).map(el => el.dataset.id);
+        Store.reorderShots(newOrder);
+        window.showToast('✓ 香盤の順序を更新しました', 'success');
     });
-  });
 };
