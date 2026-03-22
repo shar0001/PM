@@ -328,11 +328,16 @@ class AppStore {
 
     // ── Master Data ───────────────────────────────────────
     get masterData() { 
-        // 互換性のため、存在しない場合はデフォルト値を返す
-        return this._prj.masterData || {
+        const defaults = {
             shotTypes: ['Close-up', 'Wide Shot', 'OTS', 'Insert', 'Follow Shot', 'Long Shot', 'ドローン', 'その他'],
             lenses: ['14-24mm', '24-70mm', '70-200mm', '35mm', '50mm', '85mm', 'Macro'],
             locations: ['スタジオ', '外観・ロケ', 'ハウススタジオ', 'その他']
+        };
+        if (!this._prj.masterData) return defaults;
+        return {
+            shotTypes: this._prj.masterData.shotTypes || defaults.shotTypes,
+            lenses: this._prj.masterData.lenses || defaults.lenses,
+            locations: this._prj.masterData.locations || defaults.locations
         }; 
     }
     setMasterData(key, list) {

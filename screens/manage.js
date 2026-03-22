@@ -191,34 +191,34 @@ window.renderManage = function () {
               <button id="master-modal-close" class="btn-ghost !border-none !p-1 !text-muted"><span class="material-symbols-outlined">close</span></button>
           </div>
           
-          <div class="flex-1 overflow-y-auto pb-10 flex flex-col gap-6 hide-scrollbar">
+          <div class="flex-1 overflow-y-auto pb-10 flex flex-col gap-8 hide-scrollbar">
               <!-- Shot Types -->
               <div>
-                 <h4 class="text-[12px] font-bold text-text mb-3">ショットタイプ</h4>
-                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-shotTypes"></div>
-                 <div class="flex gap-2">
-                     <input type="text" id="master-input-shotTypes" class="field-input !py-2" placeholder="新しいタイプ (例: POV)">
-                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="shotTypes">追加</button>
+                 <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">movie</span>ショットタイプ</h4>
+                 <div class="flex flex-wrap gap-2 mb-3" id="master-chips-shotTypes"></div>
+                 <div class="flex items-center gap-2">
+                     <input type="text" id="master-input-shotTypes" class="field-input flex-1 !py-3" placeholder="新しいタイプ (例: POV)">
+                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="shotTypes">追加</button>
                  </div>
               </div>
 
               <!-- Lenses -->
               <div>
-                 <h4 class="text-[12px] font-bold text-text mb-3">レンズ</h4>
-                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-lenses"></div>
-                 <div class="flex gap-2">
-                     <input type="text" id="master-input-lenses" class="field-input !py-2" placeholder="新しいレンズ (例: 100mm)">
-                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="lenses">追加</button>
+                 <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">camera</span>レンズ</h4>
+                 <div class="flex flex-wrap gap-2 mb-3" id="master-chips-lenses"></div>
+                 <div class="flex items-center gap-2">
+                     <input type="text" id="master-input-lenses" class="field-input flex-1 !py-3" placeholder="新しいレンズ (例: 100mm)">
+                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="lenses">追加</button>
                  </div>
               </div>
 
               <!-- Locations -->
               <div>
-                 <h4 class="text-[12px] font-bold text-text mb-3">ロケ地種類</h4>
-                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-locations"></div>
-                 <div class="flex gap-2">
-                     <input type="text" id="master-input-locations" class="field-input !py-2" placeholder="新しいカテゴリ (例: オフィス)">
-                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="locations">追加</button>
+                 <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">location_on</span>ロケ地種類</h4>
+                 <div class="flex flex-wrap gap-2 mb-3" id="master-chips-locations"></div>
+                 <div class="flex items-center gap-2">
+                     <input type="text" id="master-input-locations" class="field-input flex-1 !py-3" placeholder="新しいカテゴリ (例: オフィス)">
+                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="locations">追加</button>
                  </div>
               </div>
           </div>
@@ -350,9 +350,9 @@ window.initManage = function () {
             const container = document.getElementById(`master-chips-${key}`);
             if (!container) return;
             container.innerHTML = md[key].map((item, index) => `
-                <div class="flex items-center gap-1 bg-surface2 border border-border rounded-full pl-3 pr-1 py-1">
-                    <span class="text-[11px] text-text">${item}</span>
-                    <button class="master-del-btn text-muted hover:text-accent w-6 h-6 flex items-center justify-center rounded-full transition-colors" data-key="${key}" data-idx="${index}">
+                <div class="flex items-center gap-2 bg-surface border border-border rounded-full pl-4 pr-1.5 py-1.5 shadow-sm">
+                    <span class="text-[12px] text-text font-display">${item}</span>
+                    <button class="master-del-btn bg-surface2 text-muted hover:text-bg hover:bg-accent w-6 h-6 flex items-center justify-center rounded-full transition-colors" data-key="${key}" data-idx="${index}">
                         <span class="material-symbols-outlined text-[14px]">close</span>
                     </button>
                 </div>
