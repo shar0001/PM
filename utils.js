@@ -245,11 +245,22 @@ const Utils = (() => {
     // ── ランダムID ────────────────────────────────────────
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
+    // ── ハプティクスフィードバック ────────────────────────
+    function triggerHaptic(type = 'Light') {
+        if (!window.navigator || !window.navigator.vibrate) return;
+        switch (type) {
+            case 'Heavy': window.navigator.vibrate(100); break;
+            case 'Success': window.navigator.vibrate([30, 50, 30]); break;
+            case 'Light':
+            default: window.navigator.vibrate(40); break;
+        }
+    }
+
     return {
         timeToMin, minToTime, fmtDiff, nowStr, nowMin,
         calcSunset, recalcSchedule, calcDelay,
         calcRemainingStats, generateKanban,
-        fmtYen, uid,
+        fmtYen, uid, triggerHaptic,
     };
 })();
 

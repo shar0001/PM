@@ -40,8 +40,11 @@ window.renderCallsheet = function () {
       <h1 class="font-display font-bold text-base">コールシート</h1>
       <p class="text-muted text-[10px] font-display">Call Sheet</p>
     </div>
-    <button id="cs-print-btn" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-background-dark text-xs font-display font-bold hover:opacity-90 transition-opacity">
-      <span class="material-symbols-outlined text-sm">print</span>PDF出力
+    <button id="cs-share-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary text-primary text-xs font-display font-bold hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-sm">link</span>共有URL
+    </button>
+    <button id="cs-print-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-background-dark text-xs font-display font-bold hover:opacity-90 transition-opacity">
+      <span class="material-symbols-outlined text-sm">print</span>PDF化
     </button>
   </header>
 
@@ -173,9 +176,27 @@ window.renderCallsheet = function () {
 };
 
 window.initCallsheet = function () {
-    document.getElementById('cs-print-btn')?.addEventListener('click', () => window.print());
+    document.getElementById('cs-print-btn')?.addEventListener('click', () => {
+        window.Utils?.triggerHaptic('Light');
+        window.print();
+    });
+
+    document.getElementById('cs-share-btn')?.addEventListener('click', () => {
+        window.Utils?.triggerHaptic('Success');
+        const mockUrl = `https://prodos.app/shared/${window.Utils?.uid() || 'demo'}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(mockUrl).then(() => {
+                window.showToast('🔗 閲覧用URLをコピーしました！', 'success');
+            }).catch(() => {
+                window.showToast('🔗 ' + mockUrl, 'success');
+            });
+        } else {
+            window.showToast('🔗 共有URL発行(β)に成功しました', 'success');
+        }
+    });
 
     document.getElementById('cs-em-add')?.addEventListener('click', () => {
+        window.Utils?.triggerHaptic('Light');
         const label = document.getElementById('cs-em-label')?.value.trim();
         const number = document.getElementById('cs-em-number')?.value.trim();
         if (!label || !number) { window.showToast('ラベルと番号を入力してください', 'error'); return; }

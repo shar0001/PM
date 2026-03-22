@@ -203,6 +203,20 @@ class AppStore {
             this.emit('timeline');
         }
     }
+    markPending(id) {
+        const shot = this._prj.shots.find(s => s.id === id);
+        if (shot) {
+            shot.status = 'pending';
+            shot.completedAt = null;
+            if (this.liveState.activeShotId === id) {
+                this.updateLiveState({ activeShotId: null });
+            }
+            this._save();
+            this.emit('shots');
+            this.emit('live');
+            this.emit('timeline');
+        }
+    }
     reorderShots(newOrder) {
         this._prj.shotOrder = newOrder;
         this._recalcSchedule();

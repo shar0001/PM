@@ -6,11 +6,14 @@ window.renderShots = function () {
   const done = shots.filter(s => s.status === 'completed').length;
 
   function shotItem(shot) {
-    const isC = shot.status === 'completed', isS = shot.status === 'shooting';
+    const isC = shot.status === 'completed', isS = shot.status === 'shooting', isP = shot.status === 'pending';
     const cast = (shot.cast || []).join(', ') || '—';
-    let border = isS ? '2px solid var(--primary)' : '1px solid var(--border)';
+    const highlightClass = isS ? 'highlight-shooting' : isC ? 'highlight-completed' : isP ? 'highlight-pending' : '';
+    const statusPillClass = isP ? 'status-pending' : isS ? 'status-shooting' : isC ? 'status-completed' : 'status-upcoming';
+    const statusText = isP ? 'NG/保留' : isS ? '撮影中' : isC ? '完了' : '未撮影';
+    
     return `
-      <div class="shot-item" data-shot-id="${shot.id}" style="background:var(--surface);border:${border};border-radius:14px;overflow:hidden;${isC ? 'opacity:.55' : ''}">
+      <div class="shot-item ${highlightClass}" data-shot-id="${shot.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.3s">
         <div style="padding:14px;display:flex;gap:10px;align-items:flex-start">
           <button class="complete-btn ${isC ? 'done' : ''}" data-complete-id="${shot.id}" title="${isC ? 'タップで元に戻す' : '完了にする'}">
             <span class="material-symbols-outlined" style="font-size:16px">${isC ? 'check' : 'radio_button_unchecked'}</span>
@@ -19,12 +22,15 @@ window.renderShots = function () {
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
               <div>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
-                  <span class="badge badge-${isS ? 'primary' : isC ? 'success' : 'muted'}">${shot.number}</span>
-                  <span class="status-pill status-${shot.status}">${isS ? '撮影中' : isC ? '完了' : '未撮影'}</span>
+                  <span class="badge badge-${isS ? 'primary' : isP ? 'accent' : isC ? 'success' : 'muted'}">${shot.number}</span>
+                  <span class="status-pill ${statusPillClass}">${statusText}</span>
                 </div>
                 <p style="font-family:var(--font-display);font-weight:700;font-size:14px;${isC ? 'text-decoration:line-through;color:var(--muted)' : ''}">${shot.title}</p>
               </div>
               <div style="display:flex;gap:4px;flex-shrink:0">
+                <button class="shot-pending-btn" data-pending-id="${shot.id}" title="NG/保留にする" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:${isP ? 'var(--accent)' : 'var(--muted)'}">
+                  <span class="material-symbols-outlined" style="font-size:14px">warning</span>
+                </button>
                 <button class="shot-edit-btn" data-edit-id="${shot.id}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted)">
                   <span class="material-symbols-outlined" style="font-size:14px">edit</span>
                 </button>
@@ -98,22 +104,29 @@ window.renderShots = function () {
         </div>
         <div><label class="field-label">タイトル</label><input id="shot-title" class="field-input" type="text" placeholder="佐藤のアップ"/></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><label class="field-label">ショットタイプ</label>
-            <select id="shot-type" class="field-input">
-              <option>Close-up</option><option>Wide Shot</option><option>OTS</option><option>Insert</option><option>Follow Shot</option><option>Long Shot</option><option>その他</option>
-            </select>
+          <div><label class="field-label">ショットタイプ <span style="text-transform:none;opacity:0.6">(1 Tap)</span></label>
+            <div class="chips-container" id="chips-type" data-target="shot-type"></div>
+            <input type="hidden" id="shot-type"/>
           </div>
           <div><label class="field-label">所要時間 (分)</label><input id="shot-duration" class="field-input" type="number" placeholder="30" min="5" max="240"/></div>
         </div>
-        <div><label class="field-label">レンズ</label><input id="shot-lens" class="field-input" type="text" placeholder="35mm / T2.0"/></div>
-        <div><label class="field-label">出演者 (カンマ区切り)</label><input id="shot-cast" class="field-input" type="text" placeholder="佐藤, 田中"/></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><label class="field-label">ロケ地 (名称)</label><input id="shot-location" class="field-input" type="text" placeholder="A棟 屋上"/></div>
-          <div><label class="field-label">現地の住所 (Map連動用)</label><input id="shot-loc-address" class="field-input" type="text" placeholder="東京都渋谷区..."/></div>
+        <div><label class="field-label">レンズ <span style="text-transform:none;opacity:0.6">(1 Tap)</span></label>
+          <div class="chips-container" id="chips-lens" data-target="shot-lens"></div>
+          <input type="hidden" id="shot-lens"/>
         </div>
-        <div><label class="field-label">小道具 (カンマ区切り)</label><input id="shot-props" class="field-input" type="text" placeholder="懐中電灯, 古い地図"/></div>
+        <div><label class="field-label">出演者 <span style="text-transform:none;opacity:0.6">(Multi Tap)</span></label>
+          <div class="chips-container" id="chips-cast" data-target="shot-cast"></div>
+          <input type="hidden" id="shot-cast"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="grid-column: span 2"><label class="field-label">ロケ地 <span style="text-transform:none;opacity:0.6">(1 Tap)</span></label>
+            <div class="chips-container" id="chips-loc" data-target="shot-location"></div>
+            <input type="hidden" id="shot-location"/>
+          </div>
+          <div style="display:none;"><label class="field-label">現地の住所</label><input id="shot-loc-address" class="field-input" type="text" placeholder="住所不要"/></div>
+        </div>
         <div><label class="field-label">メモ・注意事項</label><input id="shot-notes" class="field-input" type="text" placeholder="特記事項など"/></div>
-        <button id="shots-save-btn" class="btn-primary">保存する</button>
+        <button id="shots-save-btn" class="btn-primary" style="margin-top:8px">保存する</button>
       </div>
     </div>
   </div>
@@ -157,11 +170,23 @@ window.initShots = function () {
   // Complete toggle
   document.querySelectorAll('[data-complete-id]').forEach(btn => {
     btn.addEventListener('click', () => {
+      window.Utils?.triggerHaptic('Light');
       const id = btn.dataset.completeId;
       const shot = Store.shots.find(s => s.id === id);
       const msg = shot?.status === 'completed' ? '撮影完了を取り消しました' : '✓ 撮影完了を記録しました';
       Store.completeShot(id);
       window.showToast(msg, shot?.status === 'completed' ? '' : 'success');
+      window.navigateTo('shots');
+    });
+  });
+
+  // Pending toggle
+  document.querySelectorAll('[data-pending-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.Utils?.triggerHaptic('Heavy');
+      const id = btn.dataset.pendingId;
+      Store.markPending(id);
+      window.showToast('❗ カットを NG/保留 にしました', 'error');
       window.navigateTo('shots');
     });
   });
@@ -192,7 +217,11 @@ window.initShots = function () {
 
   // Edit
   document.querySelectorAll('.shot-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => { const s = Store.shots.find(x => x.id === btn.dataset.editId); if (s) openShotModal(s); });
+    btn.addEventListener('click', () => { 
+      window.Utils?.triggerHaptic('Light');
+      const s = Store.shots.find(x => x.id === btn.dataset.editId); 
+      if (s) openShotModal(s); 
+    });
   });
 
   // Modal events
@@ -207,7 +236,10 @@ window.initShots = function () {
     }
   }
 
-  addBtn?.addEventListener('click', () => window.openShotModal(null));
+  addBtn?.addEventListener('click', () => {
+    window.Utils?.triggerHaptic('Light');
+    window.openShotModal(null);
+  });
   closeBtn?.addEventListener('click', closeShotsModal);
   modal?.addEventListener('click', e => { if (e.target === modal) closeShotsModal(); });
 
@@ -242,8 +274,8 @@ window.initShots = function () {
       window.showToast('ロケ地 (' + data.location + ') を自動登録しました');
     }
 
-    if (editId) { Store.updateShot(editId, data); window.showToast('✓ カットを更新しました', 'success'); }
-    else { Store.addShot(data); window.showToast('✓ カットを追加しました', 'success'); }
+    if (editId) { Store.updateShot(editId, data); window.Utils?.triggerHaptic('Success'); window.showToast('✓ カットを更新しました', 'success'); }
+    else { Store.addShot(data); window.Utils?.triggerHaptic('Success'); window.showToast('✓ カットを追加しました', 'success'); }
     closeShotsModal();
     window.navigateTo('shots');
   });
@@ -271,11 +303,61 @@ window.openShotModal = function (shot) {
   }
 
   Object.entries(f).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
-  if (shot?.type) { const s = document.getElementById('shot-type'); if (s) s.value = shot.type; }
+
+  // 1-Tap Chips Binding Logic
+  function bindChips(containerId, options, isMulti = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const targetInput = document.getElementById(container.dataset.target);
+    const renderChips = () => {
+      let currentVal = targetInput.value;
+      let values = isMulti ? currentVal.split(',').map(s=>s.trim()).filter(Boolean) : [currentVal];
+      
+      container.innerHTML = options.map(opt => {
+        const active = values.includes(opt);
+        return `<button type="button" class="chip-btn ${active ? 'active' : ''}" data-val="${opt}">${opt}</button>`;
+      }).join('');
+      
+      container.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.Utils?.triggerHaptic('Light');
+          const val = btn.dataset.val;
+          if (isMulti) {
+            if (values.includes(val)) values = values.filter(v => v !== val);
+            else values.push(val);
+            targetInput.value = values.join(', ');
+          } else {
+            targetInput.value = targetInput.value === val ? '' : val;
+          }
+          renderChips();
+        });
+      });
+    };
+    renderChips();
+  }
+
+  // Populate Master Data for Chips
+  const typeOpts = ['Close-up', 'Wide Shot', 'OTS', 'Insert', 'Follow Shot', 'Long Shot', 'ドローン', 'その他'];
+  const lensOpts = ['14-24mm', '24-70mm', '70-200mm', '35mm', '50mm', '85mm', 'Macro'];
+  
+  // Aggregate unique Cast names from crew or fallback
+  let castOpts = Store.crew.filter(c => c.dept === 'Cast' || c.dept === '出演者').map(c => c.name);
+  if (castOpts.length === 0) castOpts = ['主人公', 'ヒロイン', 'エキストラ']; // fallback
+  
+  // Aggregate unique Locations
+  let locOpts = Store.locations.map(l => l.name);
+  if (locOpts.length === 0) locOpts = ['スタジオ', '外観', 'ハウススタジオ', 'オフィス']; // fallback
+
+  bindChips('chips-type', typeOpts, false);
+  bindChips('chips-lens', lensOpts, false);
+  bindChips('chips-cast', castOpts, true); // Multiple tap allowed
+  bindChips('chips-loc', locOpts, false);
 
   if (modal) {
     modal.style.opacity = '1';
     modal.style.pointerEvents = 'auto';
     modal.classList.add('show');
+    window.Utils?.triggerHaptic('Light');
   }
 };

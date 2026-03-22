@@ -19,15 +19,21 @@ window.renderLive = function () {
 
     return `
 <div id="screen-live" class="screen flex-col h-full bg-bg">
-  <header class="safe-top shrink-0 px-5 py-4 border-b border-border flex items-center justify-between bg-surface/30 backdrop-blur-md">
+  <header class="safe-top shrink-0 px-5 py-4 border-b border-border flex items-center justify-between bg-surface/30 backdrop-blur-md sticky top-0 z-50">
     <div>
-      <h1 class="font-display font-black text-2xl mb-1 text-text">撮影進行</h1>
+      <h1 class="font-display font-black text-2xl mb-1 text-text flex items-baseline gap-2">
+        進行 <span class="text-primary text-lg">${stats.pct}%</span>
+      </h1>
       <p class="text-muted text-[11px] font-display uppercase tracking-widest truncate max-w-[200px]">${Store.project.title}</p>
     </div>
-    <div class="flex flex-col items-end">
+    <div class="flex flex-col items-end gap-1.5">
       <div id="live-delay" class="text-[10px] font-display font-black px-3 py-1 rounded-full border transition-all" 
            style="background:${delayColor}11; color:${delayColor}; border-color:${delayColor}33">
         ${delayPrefix}${Math.abs(delay)}分
+      </div>
+      <div class="flex items-center gap-1.5 bg-surface2 px-2 py-0.5 rounded-md border border-border2">
+        <span class="text-[9px] text-muted uppercase font-bold tracking-widest">ETA</span>
+        <span class="text-sm font-display font-black text-primary" id="live-eta-time">--:--</span>
       </div>
     </div>
   </header>
@@ -133,8 +139,26 @@ window.renderLive = function () {
 window.initLive = function () {
     const startBtn = document.getElementById('live-start-btn');
     const finishBtn = document.getElementById('live-finish-btn');
+    const etaDisplay = document.getElementById('live-eta-time');
+
+    // ETA Update Logic
+    function updateETA() {
+        if (!etaDisplay) return;
+        const remainingShots = Store.shots.filter(s => s.status !== 'completed');
+        const remainingMin = remainingShots.reduce((sum, s) => sum + parseInt(s.duration || 30), 0);
+        const eta = window.Utils ? window.Utils.minToTime(window.Utils.nowMin() + remainingMin) : '--:--';
+        etaDisplay.textContent = eta;
+    }
+    
+    updateETA();
+    // Update every minute
+    const etaInterval = setInterval(updateETA, 60000);
+    // Cleanup interval on unmount (assuming single page app, can bind to window or screen detach. For now just clear on next render)
+    if (window._liveEtaInterval) clearInterval(window._liveEtaInterval);
+    window._liveEtaInterval = etaInterval;
 
     startBtn?.addEventListener('click', () => {
+        window.Utils?.triggerHaptic('Heavy');
         const stats = Store.getStats();
         const currentShot = Store.shots.find(s => s.status === 'shooting') || (stats.remaining.length > 0 ? stats.remaining[0] : null);
         if (currentShot) {
@@ -145,12 +169,10 @@ window.initLive = function () {
     });
 
     finishBtn?.addEventListener('click', () => {
+        window.Utils?.triggerHaptic('Success');
         const activeShot = Store.shots.find(s => s.status === 'shooting');
         if (activeShot) {
             Store.completeShot(activeShot.id);
-            
-            // 自動的に次をアクティブにはせず、ユーザーのボタン操作を待つ（または自動開始させるか検討）
-            // ここでは次のカットを「待機」状態にするため遷移のみ行う
             window.showToast('✅ 撮影完了。次の準備へ。', 'success');
             window.navigateTo('live');
         }
