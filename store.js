@@ -58,6 +58,11 @@ class AppStore {
             shots: [],
             shotOrder: [],
             locations: [],
+            masterData: {
+                shotTypes: ['Close-up', 'Wide Shot', 'OTS', 'Insert', 'Follow Shot', 'Long Shot', 'ドローン', 'その他'],
+                lenses: ['14-24mm', '24-70mm', '70-200mm', '35mm', '50mm', '85mm', 'Macro'],
+                locations: ['スタジオ', '外観・ロケ', 'ハウススタジオ', 'その他']
+            },
             budget: {
                 total: 0,
                 categories: [
@@ -321,6 +326,20 @@ class AppStore {
         this._save(); this.emit('live');
     }
 
+    // ── Master Data ───────────────────────────────────────
+    get masterData() { 
+        // 互換性のため、存在しない場合はデフォルト値を返す
+        return this._prj.masterData || {
+            shotTypes: ['Close-up', 'Wide Shot', 'OTS', 'Insert', 'Follow Shot', 'Long Shot', 'ドローン', 'その他'],
+            lenses: ['14-24mm', '24-70mm', '70-200mm', '35mm', '50mm', '85mm', 'Macro'],
+            locations: ['スタジオ', '外観・ロケ', 'ハウススタジオ', 'その他']
+        }; 
+    }
+    setMasterData(key, list) {
+        if (!this._prj.masterData) this._prj.masterData = {};
+        this._prj.masterData[key] = list;
+        this._save(); this.emit('master');
+    }
 
     // ── Crew / Emergency / Kanban / Sun ───────────────────
     get crew() { return this._prj.crew; }

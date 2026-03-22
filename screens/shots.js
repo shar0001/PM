@@ -15,9 +15,9 @@ window.renderShots = function () {
     return `
       <div class="shot-item ${highlightClass}" data-shot-id="${shot.id}" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.3s">
         <div style="padding:14px;display:flex;gap:10px;align-items:flex-start">
-          <button class="complete-btn ${isC ? 'done' : ''}" data-complete-id="${shot.id}" title="${isC ? 'タップで元に戻す' : '完了にする'}">
-            <span class="material-symbols-outlined" style="font-size:16px">${isC ? 'check' : 'radio_button_unchecked'}</span>
-          </button>
+          <div class="drag-handle" style="cursor:grab; display:flex; align-items:center; justify-content:center; color:var(--border2); margin-top: 4px;">
+            <span class="material-symbols-outlined" style="font-size:24px">drag_indicator</span>
+          </div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
               <div>
@@ -28,6 +28,9 @@ window.renderShots = function () {
                 <p style="font-family:var(--font-display);font-weight:700;font-size:14px;${isC ? 'text-decoration:line-through;color:var(--muted)' : ''}">${shot.title}</p>
               </div>
               <div style="display:flex;gap:4px;flex-shrink:0">
+                <button class="shot-complete-btn" data-complete-id="${shot.id}" title="${isC ? '完了取り消し' : '完了にする'}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${isC ? 'var(--success)' : 'var(--border)'};background:${isC ? 'var(--success)' : 'none'};cursor:pointer;color:${isC ? 'var(--bg)' : 'var(--muted)'};transition:all 0.2s">
+                  <span class="material-symbols-outlined" style="font-size:14px">check</span>
+                </button>
                 <button class="shot-pending-btn" data-pending-id="${shot.id}" title="NG/保留にする" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:${isP ? 'var(--accent)' : 'var(--muted)'}">
                   <span class="material-symbols-outlined" style="font-size:14px">warning</span>
                 </button>
@@ -338,16 +341,15 @@ window.openShotModal = function (shot) {
   }
 
   // Populate Master Data for Chips
-  const typeOpts = ['Close-up', 'Wide Shot', 'OTS', 'Insert', 'Follow Shot', 'Long Shot', 'ドローン', 'その他'];
-  const lensOpts = ['14-24mm', '24-70mm', '70-200mm', '35mm', '50mm', '85mm', 'Macro'];
+  const typeOpts = Store.masterData.shotTypes;
+  const lensOpts = Store.masterData.lenses;
   
   // Aggregate unique Cast names from crew or fallback
   let castOpts = Store.crew.filter(c => c.dept === 'Cast' || c.dept === '出演者').map(c => c.name);
   if (castOpts.length === 0) castOpts = ['主人公', 'ヒロイン', 'エキストラ']; // fallback
   
   // Aggregate unique Locations
-  let locOpts = Store.locations.map(l => l.name);
-  if (locOpts.length === 0) locOpts = ['スタジオ', '外観', 'ハウススタジオ', 'オフィス']; // fallback
+  let locOpts = Store.masterData.locations;
 
   bindChips('chips-type', typeOpts, false);
   bindChips('chips-lens', lensOpts, false);

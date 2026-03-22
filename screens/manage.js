@@ -13,7 +13,8 @@ window.renderManage = function () {
         equipment: '#F97316',  // Orange
         budget: '#10B981',     // Emerald
         logistics: '#06B6D4',  // Cyan/Teal
-        callsheet: '#64748B'   // Slate
+        callsheet: '#64748B',  // Slate
+        master: '#8B5CF6'      // Violet
     };
 
     function projectChip(p) {
@@ -120,6 +121,15 @@ window.renderManage = function () {
                 <span class="desc">配布・印刷用</span>
             </div>
         </button>
+
+        <!-- Master Data (VIOLET) -->
+        <button class="manage-tile" id="open-master-modal" style="--tile-color: ${colors.master}">
+            <div class="tile-icon"><span class="material-symbols-outlined">dataset</span></div>
+            <div class="tile-content">
+                <span class="title">選択肢の編集</span>
+                <span class="desc">マスター項目</span>
+            </div>
+        </button>
     </div>
 
     <!-- ADDITIONAL TOOLS (Requirement: Prominent Settings) -->
@@ -167,6 +177,52 @@ window.renderManage = function () {
             全てをリセット
         </button>
     </div>
+  </div>
+
+  <!-- Master Settings Modal -->
+  <div id="master-modal" class="modal-overlay">
+      <div class="modal-sheet !pb-8 !px-5" style="height: 85vh; display:flex; flex-direction:column;">
+          <div class="modal-drag"></div>
+          <div class="flex items-center justify-between mb-5 shrink-0">
+              <div>
+                  <h3 class="!mb-0">選択肢のカスタマイズ</h3>
+                  <p class="text-[10px] text-muted font-display mt-1">Master Data Editor</p>
+              </div>
+              <button id="master-modal-close" class="btn-ghost !border-none !p-1 !text-muted"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto pb-10 flex flex-col gap-6 hide-scrollbar">
+              <!-- Shot Types -->
+              <div>
+                 <h4 class="text-[12px] font-bold text-text mb-3">ショットタイプ</h4>
+                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-shotTypes"></div>
+                 <div class="flex gap-2">
+                     <input type="text" id="master-input-shotTypes" class="field-input !py-2" placeholder="新しいタイプ (例: POV)">
+                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="shotTypes">追加</button>
+                 </div>
+              </div>
+
+              <!-- Lenses -->
+              <div>
+                 <h4 class="text-[12px] font-bold text-text mb-3">レンズ</h4>
+                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-lenses"></div>
+                 <div class="flex gap-2">
+                     <input type="text" id="master-input-lenses" class="field-input !py-2" placeholder="新しいレンズ (例: 100mm)">
+                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="lenses">追加</button>
+                 </div>
+              </div>
+
+              <!-- Locations -->
+              <div>
+                 <h4 class="text-[12px] font-bold text-text mb-3">ロケ地種類</h4>
+                 <div class="flex flex-wrap gap-2 mb-2" id="master-chips-locations"></div>
+                 <div class="flex gap-2">
+                     <input type="text" id="master-input-locations" class="field-input !py-2" placeholder="新しいカテゴリ (例: オフィス)">
+                     <button class="btn-primary !py-2 !px-4 shrink-0 master-add-btn" data-key="locations">追加</button>
+                 </div>
+              </div>
+          </div>
+      </div>
   </div>
 </div>`;
 };
@@ -267,5 +323,73 @@ window.initManage = function () {
         if (Object.keys(Store._data.projects).length > 1 || confirm('全データが削除されます。本当によろしいですか？')) {
             document.getElementById('reset-btn')?.click();
         }
+    });
+
+    // ── Master Settings Modal ──
+    const masterModal = document.getElementById('master-modal');
+    document.getElementById('open-master-modal')?.addEventListener('click', () => {
+        if (masterModal) {
+            masterModal.classList.add('show');
+            masterModal.style.opacity = '1';
+            masterModal.style.pointerEvents = 'auto';
+            renderMasterChips();
+        }
+    });
+    
+    document.getElementById('master-modal-close')?.addEventListener('click', () => {
+        if (masterModal) {
+            masterModal.classList.remove('show');
+            masterModal.style.opacity = '0';
+            masterModal.style.pointerEvents = 'none';
+        }
+    });
+
+    function renderMasterChips() {
+        const md = Store.masterData;
+        ['shotTypes', 'lenses', 'locations'].forEach(key => {
+            const container = document.getElementById(`master-chips-${key}`);
+            if (!container) return;
+            container.innerHTML = md[key].map((item, index) => `
+                <div class="flex items-center gap-1 bg-surface2 border border-border rounded-full pl-3 pr-1 py-1">
+                    <span class="text-[11px] text-text">${item}</span>
+                    <button class="master-del-btn text-muted hover:text-accent w-6 h-6 flex items-center justify-center rounded-full transition-colors" data-key="${key}" data-idx="${index}">
+                        <span class="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                </div>
+            `).join('');
+        });
+
+        // Delete binds
+        document.querySelectorAll('.master-del-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const key = btn.dataset.key;
+                const idx = parseInt(btn.dataset.idx, 10);
+                const list = [...Store.masterData[key]];
+                list.splice(idx, 1);
+                Store.setMasterData(key, list);
+                renderMasterChips();
+            });
+        });
+    }
+
+    // Add binds
+    document.querySelectorAll('.master-add-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.key;
+            const input = document.getElementById(`master-input-${key}`);
+            const val = input?.value.trim();
+            if (val) {
+                const list = [...Store.masterData[key]];
+                if (!list.includes(val)) {
+                    list.push(val);
+                    Store.setMasterData(key, list);
+                    input.value = '';
+                    renderMasterChips();
+                    window.Utils?.triggerHaptic('Light');
+                } else {
+                    window.showToast('すでに登録されています', 'error');
+                }
+            }
+        });
     });
 };
