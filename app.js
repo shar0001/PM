@@ -1,5 +1,5 @@
 /* =============================================================
-   Production OS V9.7 — App Router & Boot
+   Production OS V10.0 — App Router & Boot
    ============================================================= */
 (function () {
     'use strict';
@@ -247,7 +247,7 @@
       <div style="display:flex; flex-direction:column; height:100%; align-items:center; justify-content:center; gap:24px; background:var(--bg);">
         <div style="text-align:center;">
           <div style="font-family:var(--font-display); font-weight:900; font-size:32px; color:var(--primary); letter-spacing:-.02em;">Production OS</div>
-          <p style="color:var(--text-2); font-size:12px; font-family:var(--font-body); margin-top:4px;">映像制作 進行管理システム v9.7</p>
+          <p style="color:var(--text-2); font-size:12px; font-family:var(--font-body); margin-top:4px;">映像制作 進行管理システム v10.0</p>
         </div>
         <div style="width:200px; height:4px; background:var(--border); border-radius:99px; overflow:hidden;">
           <div id="boot-bar" style="height:100%; background:var(--primary); border-radius:99px; width:0%; transition:width .4s ease;"></div>

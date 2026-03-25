@@ -1,5 +1,5 @@
 /* =============================================================
-   Unified Management Hub V9 — Project Integrated
+   Unified Management Hub V10.0 — Project Integrated
    ============================================================= */
 window.renderManage = function () {
     const projects = Store.allProjects || [];
@@ -196,9 +196,9 @@ window.renderManage = function () {
               <div>
                  <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">movie</span>ショットタイプ</h4>
                  <div class="flex flex-wrap gap-2 mb-3" id="master-chips-shotTypes"></div>
-                 <div class="flex items-center gap-2">
-                     <input type="text" id="master-input-shotTypes" class="field-input flex-1 !py-3" placeholder="新しいタイプ (例: POV)">
-                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="shotTypes">追加</button>
+                 <div class="master-add-row">
+                     <input type="text" id="master-input-shotTypes" class="field-input master-add-input" placeholder="新しいタイプ (例: POV)">
+                     <button class="btn-primary master-add-btn" data-key="shotTypes">追加</button>
                  </div>
               </div>
 
@@ -206,9 +206,9 @@ window.renderManage = function () {
               <div>
                  <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">camera</span>レンズ</h4>
                  <div class="flex flex-wrap gap-2 mb-3" id="master-chips-lenses"></div>
-                 <div class="flex items-center gap-2">
-                     <input type="text" id="master-input-lenses" class="field-input flex-1 !py-3" placeholder="新しいレンズ (例: 100mm)">
-                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="lenses">追加</button>
+                 <div class="master-add-row">
+                     <input type="text" id="master-input-lenses" class="field-input master-add-input" placeholder="新しいレンズ (例: 100mm)">
+                     <button class="btn-primary master-add-btn" data-key="lenses">追加</button>
                  </div>
               </div>
 
@@ -216,9 +216,9 @@ window.renderManage = function () {
               <div>
                  <h4 class="text-[12px] font-bold text-text mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-primary">location_on</span>ロケ地種類</h4>
                  <div class="flex flex-wrap gap-2 mb-3" id="master-chips-locations"></div>
-                 <div class="flex items-center gap-2">
-                     <input type="text" id="master-input-locations" class="field-input flex-1 !py-3" placeholder="新しいカテゴリ (例: オフィス)">
-                     <button class="btn-primary !w-auto !py-3 !px-5 shrink-0 master-add-btn text-[12px]" data-key="locations">追加</button>
+                 <div class="master-add-row">
+                     <input type="text" id="master-input-locations" class="field-input master-add-input" placeholder="新しいカテゴリ (例: オフィス)">
+                     <button class="btn-primary master-add-btn" data-key="locations">追加</button>
                  </div>
               </div>
           </div>

@@ -798,6 +798,45 @@ textarea.field-input {
     position: relative;
 }
 
+/* ── Master Data Add Row (Mobile-friendly) ──────── */
+.master-add-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.master-add-input {
+    width: 100%;
+    font-size: 16px !important;  /* Prevents iOS auto-zoom on focus */
+    padding: 14px 16px !important;
+    border-radius: 12px !important;
+    min-height: 48px;
+}
+
+.master-add-row .btn-primary {
+    width: 100%;
+    padding: 14px;
+    font-size: 13px;
+    border-radius: 12px;
+}
+
+/* On wider screens, use side-by-side layout */
+@media (min-width: 480px) {
+    .master-add-row {
+        flex-direction: row;
+        align-items: center;
+    }
+    .master-add-input {
+        flex: 1;
+        min-width: 0;
+    }
+    .master-add-row .btn-primary {
+        width: auto;
+        padding: 14px 24px;
+        flex-shrink: 0;
+    }
+}
+
 /* ── V9.5 Physical UX & Chips UI ───────────────────── */
 .chips-container {
     display: flex;
